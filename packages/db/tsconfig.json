@@ -1,0 +1,5 @@
+{
+  "extends": "@kizashi/config/tsconfig.library.json",
+  "include": ["src/**/*.ts", "test/**/*.ts", "prisma.config.ts", "migrate.ts"],
+  "compilerOptions": { "outDir": "dist", "rootDir": ".", "types": ["bun"] }
+}

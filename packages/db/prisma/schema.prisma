@@ -1,0 +1,97 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../node_modules/.prisma/engine"
+  runtime      = "bun"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model AuthNonce {
+  nonce     String   @id
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([expiresAt])
+  @@map("auth_nonces")
+}
+
+model Run {
+  id             String      @id @default(uuid()) @db.Uuid
+  owner          String
+  chainId        Int         @map("chain_id")
+  mode           String
+  status         String      @default("created")
+  rulesConfirmed Boolean     @default(false) @map("rules_confirmed")
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  ruleSets       RuleSet[]
+  events         RunEvent[]
+  effects        Effect[]
+  executions     Execution[]
+  killSwitch     KillSwitch?
+
+  @@index([owner, createdAt])
+  @@map("runs")
+}
+
+model RuleSet {
+  hash        String
+  runId       String    @map("run_id") @db.Uuid
+  source      String
+  parsed      Json
+  confirmedAt DateTime? @map("confirmed_at") @db.Timestamptz(3)
+  run         Run       @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@id([runId, hash])
+  @@map("rule_sets")
+}
+
+model RunEvent {
+  runId   String   @map("run_id") @db.Uuid
+  seq     Int
+  type    String
+  payload Json
+  tSec    BigInt   @map("t_sec")
+  run     Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@id([runId, seq])
+  @@map("run_events")
+}
+
+model Effect {
+  key       String   @id
+  runId     String   @map("run_id") @db.Uuid
+  status    String
+  result    Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  run       Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@map("effects")
+}
+
+model Execution {
+  tradeId    String   @id @map("trade_id")
+  runId      String   @map("run_id") @db.Uuid
+  txHash     String   @map("tx_hash")
+  origin     String
+  status     String
+  chargeUsdc String?  @map("charge_usdc")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  run        Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@map("executions")
+}
+
+model KillSwitch {
+  runId     String   @id @map("run_id") @db.Uuid
+  stopped   Boolean  @default(false)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  run       Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@map("kill_switch")
+}

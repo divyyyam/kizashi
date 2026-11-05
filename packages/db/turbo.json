@@ -1,0 +1,6 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "build": { "env": ["DATABASE_URL", "ENGINE_DB_SCHEMA"] }
+  }
+}
