@@ -1,0 +1,39 @@
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+out = "out"
+cache_path = "cache"
+libs = ["lib"]
+# remappings.txt is the only source: auto-detected nested-lib remappings would let duplicate
+# v4-core / OpenZeppelin copies inside lib/*/lib shadow the single shared resolution.
+auto_detect_remappings = false
+solc_version = "0.8.26"
+# Uniswap v4 needs Cancun (transient storage). Confirmed or changed by the D8 test deploy at F-CP0.
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+fs_permissions = [{ access = "read", path = "./test/vectors" }, { access = "read-write", path = "./deployments" }]
+
+[profile.default.fuzz]
+runs = 1000
+
+[profile.default.invariant]
+runs = 1000
+depth = 64
+fail_on_revert = false
+
+[profile.ci.fuzz]
+runs = 10000
+
+[rpc_endpoints]
+arc_testnet = "${ARC_TESTNET_RPC_URL}"
+anvil = "http://127.0.0.1:8545"
+
+[fmt]
+line_length = 100
+tab_width = 4
+bracket_spacing = false
+int_types = "long"
+quote_style = "double"
+number_underscore = "thousands"
