@@ -1,0 +1,32 @@
+node_modules/
+.turbo/
+.next/
+out/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+.vercel/
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+!.env.example
+
+# Foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/*/31337/
+contracts/lcov.info
+
+# Python oracle
+__pycache__/
+.venv/
+
+# Ponder
+.ponder/
+
+# Rust (kept from original)
+target/

@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.4.2"
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - name: Detect Foundry project
+        id: project
+        run: |
+          if [ -f contracts/foundry.toml ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: foundry-rs/foundry-toolchain@v1
+        if: steps.project.outputs.present == 'true'
+        with:
+          version: v1.8.6
+      - name: Check formatting
+        if: steps.project.outputs.present == 'true'
+        working-directory: contracts
+        run: forge fmt --check
+      - name: Build and check sizes
+        if: steps.project.outputs.present == 'true'
+        working-directory: contracts
+        run: forge build --sizes
+      - name: Test contracts
+        if: steps.project.outputs.present == 'true'
+        working-directory: contracts
+        run: forge test

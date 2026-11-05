@@ -1,0 +1,22 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "globalEnv": ["NODE_ENV"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+    },
+    "dev": {
+      "persistent": true,
+      "cache": false,
+      "env": ["WATCHPACK_POLLING", "CHOKIDAR_USEPOLLING"]
+    },
+    "typecheck": { "dependsOn": ["^build"] },
+    "test": { "dependsOn": ["^build"] },
+    "codegen": {
+      "inputs": ["../../contracts/out/**", "../../contracts/deployments/**"],
+      "outputs": ["src/generated.ts"]
+    }
+  }
+}

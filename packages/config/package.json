@@ -1,0 +1,10 @@
+{
+  "name": "@kizashi/config",
+  "private": true,
+  "exports": {
+    "./tsconfig.base.json": "./tsconfig.base.json",
+    "./tsconfig.nextjs.json": "./tsconfig.nextjs.json",
+    "./tsconfig.library.json": "./tsconfig.library.json",
+    "./tsconfig.bun.json": "./tsconfig.bun.json"
+  }
+}
