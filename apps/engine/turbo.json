@@ -1,0 +1,19 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "dev": {
+      "env": [
+        "DATABASE_URL",
+        "ENGINE_DB_SCHEMA",
+        "ENGINE_CHECKPOINT_SCHEMA",
+        "ENGINE_GEMINI_MODEL",
+        "GOOGLE_GENERATIVE_AI_API_KEY",
+        "ENGINE_JWT_SECRET",
+        "ENGINE_ALLOWED_ORIGINS",
+        "ENGINE_SIWE_DOMAIN",
+        "NEXT_PUBLIC_CHAIN_ID",
+        "PORT"
+      ]
+    }
+  }
+}

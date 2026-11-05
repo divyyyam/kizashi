@@ -1,0 +1,39 @@
+{
+  "name": "@kizashi/engine",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "bun --env-file=../../.env --watch src/index.ts",
+    "start": "bun --env-file=../../.env src/index.ts",
+    "build": "bun build src/index.ts --target=bun --packages=external --outdir=dist",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "verify:postgres": "bun --env-file=../../.env test/live-postgres.ts",
+    "verify:core": "bun --env-file=../../.env test/live-core.ts"
+  },
+  "dependencies": {
+    "@kizashi/db": "workspace:*",
+    "@kizashi/schemas": "workspace:*",
+    "@langchain/core": "1.3.4",
+    "@langchain/google-genai": "2.3.4",
+    "@langchain/langgraph": "1.7.0",
+    "@langchain/langgraph-checkpoint-postgres": "1.1.2",
+    "cors": "2.8.6",
+    "express": "5.3.0",
+    "express-rate-limit": "8.7.3",
+    "jose": "6.2.15",
+    "multer": "2.5.0",
+    "pg": "8.23.1",
+    "pino": "10.4.0",
+    "unpdf": "2.1.0",
+    "viem": "2.57.16",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/cors": "2.8.19",
+    "@types/express": "5.0.6",
+    "@types/multer": "2.3.0",
+    "@types/pg": "8.23.1"
+  }
+}
