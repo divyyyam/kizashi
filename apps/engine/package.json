@@ -10,9 +10,13 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "verify:postgres": "bun --env-file=../../.env test/live-postgres.ts",
-    "verify:core": "bun --env-file=../../.env test/live-core.ts"
+    "verify:core": "bun --env-file=../../.env test/live-core.ts",
+    "verify:arc": "bun --env-file=../../.env test/live-arc.ts",
+    "verify:http": "bun test/live-http.ts"
   },
   "dependencies": {
+    "@kizashi/arkiv": "workspace:*",
+    "@kizashi/core": "workspace:*",
     "@kizashi/db": "workspace:*",
     "@kizashi/schemas": "workspace:*",
     "@langchain/core": "1.3.4",
