@@ -117,8 +117,9 @@ contract KizashiResolver {
     }
 
     /// @notice Settle a price market from the TWAP over [close - window, close]. Anyone, after close.
-    /// @dev If fewer than minObservations swaps fell inside the window, or liquidity is below
-    /// minLiquidity, the market switches to the manual path instead of settling on a movable price.
+    /// @dev If fewer than minObservations swaps fell inside the window, liquidity is below
+    /// minLiquidity, or the window is no longer readable (pushed out of the hook's buffer), the
+    /// market switches to the manual path instead of settling on a movable price or locking.
     function resolveFromTwap(uint256 marketId) external {
         Market memory m = _market(marketId);
         if (m.mode != ResolutionMode.Twap || m.twapRejected) revert NotTwapMarket();
@@ -128,16 +129,30 @@ contract KizashiResolver {
 
         PriceSource memory s = _priceSources[marketId];
         PoolId id = PoolIdLibrary.toId(s.key);
-        (int24 meanTick, uint16 count) = hook.consult(id, uint32(close) - s.window, uint32(close));
         uint128 live = hook.liquidity(id);
-        if (count < s.minObservations || live < s.minLiquidity) {
-            markets[marketId].twapRejected = true;
-            emit TwapRejected(marketId, count, live);
-            return;
+        // A window pushed out of the hook's ring buffer (or any other consult/price failure)
+        // must open the manual path instead of locking the market forever.
+        try hook.consult(id, uint32(close) - s.window, uint32(close)) returns (
+            int24 meanTick, uint16 count
+        ) {
+            if (count < s.minObservations || live < s.minLiquidity) {
+                return _rejectTwap(marketId, count, live);
+            }
+            try this.gridValue(s, meanTick) returns (int256 value) {
+                uint256 bucket = m.pool.bucketOf(value);
+                m.pool.resolve(bucket);
+                emit Finalized(marketId, bucket, ResolutionMode.Twap);
+            } catch {
+                _rejectTwap(marketId, count, live);
+            }
+        } catch {
+            _rejectTwap(marketId, 0, live);
         }
-        uint256 bucket = m.pool.bucketOf(gridValue(s, meanTick));
-        m.pool.resolve(bucket);
-        emit Finalized(marketId, bucket, ResolutionMode.Twap);
+    }
+
+    function _rejectTwap(uint256 marketId, uint16 count, uint128 live) internal {
+        markets[marketId].twapRejected = true;
+        emit TwapRejected(marketId, count, live);
     }
 
     /// @notice Grid value for a mean tick: base price in quote tokens * 10^gridDecimals.

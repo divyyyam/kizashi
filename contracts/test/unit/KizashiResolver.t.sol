@@ -133,6 +133,26 @@ contract KizashiResolverTest is Fixtures {
         assertEq(pool.winningBucket(), 4);
     }
 
+    /// Audit SPONSOR-AUDIT-01 #2: swaps after the window starts can push it out of the hook's
+    /// 720-entry buffer. Resolution must fall back to manual instead of locking the market.
+    function test_twap_windowPushedOutOfBufferFallsBackToManual() public {
+        (uint256 id, KizashiPool pool) = createMarket(twapParams(close));
+        vm.warp(close - 300);
+        for (uint256 i; i < 725; ++i) {
+            vm.warp(block.timestamp + 1);
+            swap(priceKey, i % 2 == 0, -1e12, ZERO_BYTES);
+        }
+        resolver.resolveFromTwap(id); // window [close-300, close] is no longer covered
+        assertEq(uint256(pool.state()), uint256(State.Closed));
+        (,, bool rejected) = resolver.markets(id);
+        assertTrue(rejected);
+        vm.prank(resolverRole);
+        resolver.propose(id, 4, bytes32("manual after buffer overflow"));
+        vm.warp(block.timestamp + resolver.DISPUTE_WINDOW());
+        resolver.finalize(id);
+        assertEq(uint256(pool.state()), uint256(State.Resolved));
+    }
+
     function test_twap_tooEarly() public {
         (uint256 id,) = createMarket(twapParams(close));
         vm.expectRevert(abi.encodeWithSelector(KizashiResolver.TooEarly.selector, close));
