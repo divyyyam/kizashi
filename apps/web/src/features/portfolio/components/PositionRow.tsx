@@ -7,10 +7,13 @@ import { MiniCurve } from "@/features/markets";
 import { txUrl } from "@/lib/explorer";
 import { formatUsdc, formatWad } from "@/lib/format";
 import { useRedeem } from "../hooks/use-redeem";
+import { useRelease } from "../hooks/use-release";
 import type { PortfolioPosition } from "../types";
 
 export function PositionRow({ position }: { position: PortfolioPosition }) {
   const { redeem, isRedeeming } = useRedeem(position.poolAddress, position.chainId);
+  const { release, isReleasing } = useRelease(position.poolAddress, position.chainId);
+  const releasableWad = position.status === "open" ? floorOf(position.positionWad) : 0n;
   const complete = position.history.status === "complete";
   const tickets = position.history.status === "complete" ? position.history.originalTicketsWad : [];
 
@@ -66,7 +69,7 @@ export function PositionRow({ position }: { position: PortfolioPosition }) {
         ))}
       </Link>
 
-      {(position.canRedeem || finalizedUrl) && (
+      {(position.canRedeem || finalizedUrl || releasableWad > 0n) && (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t bg-surface-raised/40 px-6 py-3 text-small">
           <div>
             {finalizedUrl ? (
@@ -82,6 +85,11 @@ export function PositionRow({ position }: { position: PortfolioPosition }) {
             ) : null}
           </div>
           <div>
+            {releasableWad > 0n ? (
+              <Button size="sm" onClick={() => void release(releasableWad)} disabled={isReleasing}>
+                {isReleasing ? copy.portfolio.releasing : copy.portfolio.release}
+              </Button>
+            ) : null}
             {position.canRedeem ? (
               <Button size="sm" onClick={() => void redeem()} disabled={isRedeeming}>
                 {isRedeeming ? copy.portfolio.redeeming : copy.portfolio.redeem}

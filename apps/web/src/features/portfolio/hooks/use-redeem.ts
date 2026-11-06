@@ -23,6 +23,7 @@ export function useRedeem(poolAddress?: Address, chainId?: number) {
         address: poolAddress,
         abi: kizashiPoolAbi,
         functionName: "redeem",
+        account: walletClient.account,
       });
       const hash = await walletClient.writeContract(request);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });

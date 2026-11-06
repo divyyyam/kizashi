@@ -4,6 +4,7 @@ import { parseAbiItem } from "viem";
 import { copy } from "@/content/copy";
 import { fetchMarkets } from "@/features/markets/lib/fetch-markets";
 import type { PortfolioPosition } from "../types";
+import { fetchTicketHistory } from "./ticket-history";
 
 export async function fetchPortfolioPositions(
   client: PublicClient,
@@ -82,7 +83,16 @@ export async function fetchPortfolioPositions(
           status: m.status,
           owner,
           positionWad: posWad,
-          history: { status: "unavailable", reason: copy.market.historyUnavailable },
+          history: hasPosition
+            ? await fetchTicketHistory(
+                client,
+                m.poolAddress,
+                owner,
+                DEPLOYMENT_5042002.markets[m.marketId]?.block,
+                posWad,
+                block.number,
+              )
+            : { status: "unavailable", reason: copy.market.historyUnavailable },
           lifecycle: "active",
           blockNumber: block.number,
           blockHash: block.hash,

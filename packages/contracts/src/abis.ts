@@ -32,9 +32,11 @@ export const kizashiPoolAbi = parseAbi([
   "function creator() view returns (address)",
   "function quote(address owner, int256[] delta) view returns (Quote)",
   "function trade(int256[] delta, int256 limitUsdc, uint64 deadline) returns (Quote)",
-  "function redeem() returns (int256 payoutWad, uint256 payoutUsdc)",
+  "function redeem() returns (uint256 paidUsdc)",
+  "function release(int256 amountWad) returns (uint256 paidUsdc)",
   "event Traded(address indexed owner, int256[] delta, int256 topUpWad, int256 chargeWad, int256 chargeUsdc)",
   "event Redeemed(address indexed owner, int256 payoutWad, uint256 paidUsdc)",
+  "event Released(address indexed owner, int256 amountWad, uint256 paidUsdc)",
   "event Resolved(uint256 indexed bucket)",
   "event Closed(address indexed by)",
 ]);
