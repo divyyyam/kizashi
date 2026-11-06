@@ -78,6 +78,16 @@ contract KizashiMarketFactoryTest is Fixtures {
         p.priceSource.window = 0;
         vm.expectRevert(KizashiMarketFactory.ResolutionParamsInvalid.selector);
         factory.createMarket(p);
+
+        p = twapParams(close);
+        p.priceSource.minLiquidity = 0; // a zero guard would accept an empty pool
+        vm.expectRevert(KizashiMarketFactory.ResolutionParamsInvalid.selector);
+        factory.createMarket(p);
+
+        p = twapParams(close);
+        p.priceSource.baseDecimals = 6; // creator lies about decimals; the token says 18
+        vm.expectRevert(KizashiMarketFactory.ResolutionParamsInvalid.selector);
+        factory.createMarket(p);
     }
 
     function testFuzz_createMarket_anyGridAndSubsidy(uint256 n, uint256 subsidy) public {

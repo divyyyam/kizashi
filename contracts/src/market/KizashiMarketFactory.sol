@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
+import {Currency} from "@uniswap/v4-core/src/types/Currency.sol";
 import {LibClone} from "solady/utils/LibClone.sol";
 import {ReentrancyGuard} from "solady/utils/ReentrancyGuard.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
@@ -103,7 +104,21 @@ contract KizashiMarketFactory is ReentrancyGuard {
         if (
             address(resolver.hook()) == address(0)
                 || address(s.key.hooks) != address(resolver.hook()) || s.window == 0
-                || s.minObservations == 0 || s.window >= p.closeTime
+                || s.minObservations == 0 || s.minLiquidity == 0 || s.window >= p.closeTime
+                || s.gridDecimals > 18
         ) revert ResolutionParamsInvalid();
+        // Decimals come from the tokens themselves, not from the creator's word.
+        (address base, address quote) = s.baseIsToken0
+            ? (Currency.unwrap(s.key.currency0), Currency.unwrap(s.key.currency1))
+            : (Currency.unwrap(s.key.currency1), Currency.unwrap(s.key.currency0));
+        if (_decimals(base) != s.baseDecimals || _decimals(quote) != s.quoteDecimals) {
+            revert ResolutionParamsInvalid();
+        }
+    }
+
+    function _decimals(address token) internal view returns (uint8) {
+        (bool ok, bytes memory data) = token.staticcall(abi.encodeWithSignature("decimals()"));
+        if (!ok || data.length < 32) revert ResolutionParamsInvalid();
+        return abi.decode(data, (uint8));
     }
 }
