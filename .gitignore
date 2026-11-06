@@ -30,3 +30,6 @@ __pycache__/
 
 # Rust (kept from original)
 target/
+
+# Agent git worktrees
+.worktrees/
