@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Kizashi">
+  <title>Kizashi</title>
+  <rect width="32" height="32" fill="#0A0A0A"/>
+  <text
+    x="16"
+    y="23"
+    font-family="Geist, system-ui, sans-serif"
+    font-size="20"
+    font-weight="600"
+    fill="#FAFAFA"
+    text-anchor="middle"
+    dominant-baseline="auto"
+  >K</text>
+</svg>
