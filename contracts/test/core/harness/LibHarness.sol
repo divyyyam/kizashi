@@ -2,6 +2,8 @@
 pragma solidity 0.8.26;
 
 import {Grid} from "../../../src/core/Grid.sol";
+import {LSE} from "../../../src/core/LSE.sol";
+import {Shapes} from "../../../src/core/Shapes.sol";
 import {VecLib} from "../../../src/core/VecLib.sol";
 import {Wad} from "../../../src/core/Wad.sol";
 
@@ -49,5 +51,25 @@ contract LibHarness {
 
     function minOf(int256[] memory a) external pure returns (int256) {
         return VecLib.minOf(a);
+    }
+
+    function step(uint256 n, uint256 k, int256 size) external pure returns (int256[] memory) {
+        return Shapes.step(n, k, size);
+    }
+
+    function range(uint256 n, uint256 from, uint256 to, int256 size)
+        external
+        pure
+        returns (int256[] memory)
+    {
+        return Shapes.range(n, from, to, size);
+    }
+
+    function validate(int256[] memory delta, uint256 n, int256 maxAbs) external pure {
+        Shapes.validate(delta, n, maxAbs);
+    }
+
+    function costUp(int256[] memory q, int256 b) external pure returns (int256) {
+        return LSE.costUp(q, b);
     }
 }
