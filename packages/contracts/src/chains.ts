@@ -3,11 +3,6 @@ import { foundry as anvil } from "viem/chains";
 
 export { anvil };
 
-/**
- * Arc testnet, values from https://docs.arc.io/arc/references/connect-to-arc and
- * https://docs.arc.io/arc/references/contract-addresses (checked 2026-11-06).
- * The native currency is USDC at 18 decimals; app maths uses the 6-decimal ERC-20 view only.
- */
 export const arcTestnet: Chain = defineChain({
   id: 5_042_002,
   name: "Arc Testnet",

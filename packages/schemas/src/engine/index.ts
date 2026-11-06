@@ -24,3 +24,4 @@ export * from "./market-kind";
 export { allowedShapeSchema, type RuleSet } from "./rules";
 export * from "./runs";
 export { engineSnapshotSchema } from "./snapshot";
+export * from "./voice";

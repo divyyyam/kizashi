@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./engine": "./src/engine/index.ts"
+    "./engine": "./src/engine/index.ts",
+    "./market": "./src/market/index.ts"
   },
   "scripts": {
     "build": "tsc",
