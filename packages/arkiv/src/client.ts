@@ -53,29 +53,30 @@ export type ArkivReader = ReturnType<typeof createArkivReader>;
 export type ArkivWriter = ReturnType<typeof createArkivWriter>;
 
 /** Server-side endpoint config, from an env object the caller passes in (never process.env here). */
-export type ArkivEnv = {
-  ARKIV_RPC_URL?: string | undefined;
-  ARKIV_WS_URL?: string | undefined;
-  ARKIV_CHAIN_ID?: string | undefined;
-};
+export type ArkivEnv = Readonly<Record<string, unknown>>;
+
+function envString(env: ArkivEnv, key: string): string | undefined {
+  const value = env[key];
+  return typeof value === "string" ? value.trim() : undefined;
+}
 
 export type ArkivConfigResult =
   | { status: "ready"; config: ArkivReaderConfig }
   | { status: "unavailable"; reason: string };
 
 export function arkivConfigFromEnv(env: ArkivEnv): ArkivConfigResult {
-  const rpcUrl = env.ARKIV_RPC_URL?.trim();
+  const rpcUrl = envString(env, "ARKIV_RPC_URL");
   if (!rpcUrl) return { status: "unavailable", reason: "ARKIV_RPC_URL is not set" };
   if (!/^https:\/\//.test(rpcUrl) && !/^http:\/\/(localhost|127\.0\.0\.1)/.test(rpcUrl)) {
     return { status: "unavailable", reason: "ARKIV_RPC_URL must be https" };
   }
-  const chainId = env.ARKIV_CHAIN_ID?.trim();
+  const chainId = envString(env, "ARKIV_CHAIN_ID");
   if (chainId && Number(chainId) !== ARKIV_TESTNET.chainId) {
     return {
       status: "unavailable",
       reason: `ARKIV_CHAIN_ID ${chainId} is not the Arkiv testnet (${ARKIV_TESTNET.chainId})`,
     };
   }
-  const wsUrl = env.ARKIV_WS_URL?.trim();
+  const wsUrl = envString(env, "ARKIV_WS_URL");
   return { status: "ready", config: { rpcUrl, wsUrl: wsUrl || undefined } };
 }

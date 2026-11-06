@@ -6,6 +6,8 @@ export const MAX_PROMPT_CHARACTERS = 2000;
 export const voiceMimeSchema = z.enum(["audio/webm", "audio/ogg", "audio/mp4", "audio/wav"]);
 export const voiceAvailabilitySchema = z.object({ available: z.boolean() }).strict();
 export const voiceResponseSchema = z.object({ text: z.string().max(16000) }).strict();
-export const voiceErrorSchema = z.object({
-  code: z.enum(["unavailable", "invalid_audio", "too_large", "rate_limited", "failed"]),
-}).strict();
+export const voiceErrorSchema = z
+  .object({
+    code: z.enum(["unavailable", "invalid_audio", "too_large", "rate_limited", "failed"]),
+  })
+  .strict();
