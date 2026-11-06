@@ -10,9 +10,8 @@ export function useEngineHealth() {
   const [status, setStatus] = useState<"checking" | "connected" | "offline" | "unconfigured">(
     ENGINE_URL ? "checking" : "unconfigured",
   );
-  // biome-ignore lint/correctness/useExhaustiveDependencies: `attempt` is the retry trigger
   useEffect(() => {
-    if (!ENGINE_URL) return;
+    if (!ENGINE_URL || attempt < 0) return;
     const controller = new AbortController();
     setStatus("checking");
     fetch(`${ENGINE_URL}/health`, {
