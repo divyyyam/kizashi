@@ -1,0 +1,46 @@
+{
+  "EngineBudgetVaultImplementation": {
+    "address": "0xA631C3fF4128b9dA8581e636db88f7927A3df9cb",
+    "block": 71016700
+  },
+  "EngineVaultFactory": {
+    "address": "0xdF9c01CFb5D448043C6fC54FA365c9645D443104",
+    "block": 71016700
+  },
+  "KizashiMarketFactory": {
+    "address": "0x9220ff4A3E8239E05592c8DD6203DF3eD277C756",
+    "block": 71016700
+  },
+  "KizashiOracleHook": {
+    "address": "0xDC01d60Ac4a389FD3Cf84959A8fc1e7EDcACd040",
+    "block": 71016700
+  },
+  "KizashiPoolImplementation": {
+    "address": "0x494202DCD3094B576C9B34B0bB74be97E333CEab",
+    "block": 71016700
+  },
+  "KizashiResolver": {
+    "address": "0xf8E601C93Fd1d98833E24d578410FDaaA69A5A70",
+    "block": 71016700
+  },
+  "KizashiTestToken": {
+    "address": "0x293D9e82fe0f3bDe07164D0EDfAE19eCd33E09dc",
+    "block": 71016700
+  },
+  "PoolManager": {
+    "address": "0xAAa363AB15694eFA8ce0E5D7462F1A6123389F11",
+    "block": 71016700
+  },
+  "PoolModifyLiquidityTest": {
+    "address": "0x8BaEf76bEd0d630d958E3f4E897B41Fca15FA6E8",
+    "block": 71016700
+  },
+  "PoolSwapTest": {
+    "address": "0x7473CecaF3B205E32f1360257231da2B4d66F931",
+    "block": 71016700
+  },
+  "USDC": {
+    "address": "0x3600000000000000000000000000000000000000",
+    "block": 71016700
+  }
+}
