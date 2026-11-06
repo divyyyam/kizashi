@@ -29,7 +29,7 @@ ending at close.
    our audit):
    - A window can be pushed out of the buffer by many swaps, which is a liveness denial of
      service. We added a fallback to manual resolution.
-   - A liquidity guard that reads *current* liquidity can be gamed across the window.
+   - A liquidity guard that reads _current_ liquidity can be gamed across the window.
    - Gas griefing on the consult path.
 
    A short "building oracles on v4" guide covering these would be valuable.

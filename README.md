@@ -1,6 +1,6 @@
 # Kizashi
 
-**Outcome markets that net your collateral.** Bet yes/no, or bet the *shape* of an outcome (the ETH
+**Outcome markets that net your collateral.** Bet yes/no, or bet the _shape_ of an outcome (the ETH
 year-end close, total goals on Boxing Day, a bowler's top speed). Kizashi compiles every bet into a
 payout vector, prices all of them on one LMSR curve, and locks USDC only for the **worst case of the
 sum** of your positions, not the sum of each bet's worst case.
@@ -40,14 +40,14 @@ worst case of the sum) and **Freed** (the difference).
 
 Invariants, tested in `contracts/test/core` (125 tests including fuzz and invariant suites):
 
-| | Invariant |
-|---|---|
-| I1 | Solvency: pool cash ≥ the worst-case liability over every bucket |
-| I2 | Positions stay non-negative after top-up and normalisation |
-| I3 | Maker loss ≤ b · ln n |
-| I4 | Path additivity: trading δ₁ then δ₂ costs the same as δ₁ + δ₂ |
-| I5 | Exact translation: adding a constant to every bucket costs exactly that constant |
-| I6 | Freed collateral ≥ 0 |
+|     | Invariant                                                                        |
+| --- | -------------------------------------------------------------------------------- |
+| I1  | Solvency: pool cash ≥ the worst-case liability over every bucket                 |
+| I2  | Positions stay non-negative after top-up and normalisation                       |
+| I3  | Maker loss ≤ b · ln n                                                            |
+| I4  | Path additivity: trading δ₁ then δ₂ costs the same as δ₁ + δ₂                    |
+| I5  | Exact translation: adding a constant to every bucket costs exactly that constant |
+| I6  | Freed collateral ≥ 0                                                             |
 
 `@kizashi/core` is a bigint TypeScript mirror with **exact parity** with the Solidity (665 tests
 against 381 golden vectors from a Python reference in `contracts/ref`), so the UI and the engine
@@ -63,6 +63,7 @@ correct curve pays more than the matching binary bet.
 ### Creating a market
 
 `/markets/new` takes:
+
 - a question, description, category, tags and an image;
 - YES/NO labels or a numeric range;
 - an expiry;
@@ -81,6 +82,7 @@ correct curve pays more than the matching binary bet.
 ### The engine (Suggest mode)
 
 `apps/engine` is a LangGraph pipeline behind an Express API:
+
 1. Rule set (JSON or PDF) → confirmed `rulesHash`.
 2. Market context read from Arc at one pinned block.
 3. Gemini plans a bet (structured output, validated by zod).
@@ -132,12 +134,12 @@ with **`KizashiOracleHook`**:
 `packages/arkiv` (`@arkiv-network/sdk` 1.0.1) defines four entity types. Every one is tagged
 `project=kizashi` and `v=1`; details are in [`arkiv/schema.md`](arkiv/schema.md).
 
-| Entity | Writer | What users see |
-|---|---|---|
-| `kizashi.market` | listing service `0xeE5F49601ce76294c09FA38a6c85a10f25990ed3` | The lobby, with the metadata and image CIDs, and the creator recorded |
-| `kizashi.curveSnapshot` | indexer `0x685317A2bFdABFbe1d4b05c334ff5272137Ef134` | The crowd-curve history chart |
-| `kizashi.proposal` | engine `0x2888347C7D47E450bB7fE4193B98dB728a948FB9` | The engine inbox (10-minute expiry, then patched to approved with the tx hash) |
-| `kizashi.probe` | smoke test | Testnet write/read evidence |
+| Entity                  | Writer                                                       | What users see                                                                 |
+| ----------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `kizashi.market`        | listing service `0xeE5F49601ce76294c09FA38a6c85a10f25990ed3` | The lobby, with the metadata and image CIDs, and the creator recorded          |
+| `kizashi.curveSnapshot` | indexer `0x685317A2bFdABFbe1d4b05c334ff5272137Ef134`         | The crowd-curve history chart                                                  |
+| `kizashi.proposal`      | engine `0x2888347C7D47E450bB7fE4193B98dB728a948FB9`          | The engine inbox (10-minute expiry, then patched to approved with the tx hash) |
+| `kizashi.probe`         | smoke test                                                   | Testnet write/read evidence                                                    |
 
 The access key stays on the server: browsers read through a read-only JSON-RPC proxy at
 `/api/arkiv` that refuses anything that writes. Arkiv never holds or authorises money; on any
@@ -157,15 +159,15 @@ const { items } = await openMarkets(reader, {
 
 ## Deployed contracts (Arc testnet, chain 5042002)
 
-| Contract | Address |
-|---|---|
-| KizashiMarketFactory | `0x9220ff4A3E8239E05592c8DD6203DF3eD277C756` |
-| KizashiResolver | `0xf8E601C93Fd1d98833E24d578410FDaaA69A5A70` |
-| KizashiPool (implementation) | `0x494202DCD3094B576C9B34B0bB74be97E333CEab` |
-| KizashiOracleHook | `0xDC01d60Ac4a389FD3Cf84959A8fc1e7EDcACd040` |
-| PoolManager (Uniswap v4) | `0xAAa363AB15694eFA8ce0E5D7462F1A6123389F11` |
-| KZT test token | `0x293D9e82fe0f3bDe07164D0EDfAE19eCd33E09dc` |
-| EngineVaultFactory | `0xdF9c01CFb5D448043C6fC54FA365c9645D443104` |
+| Contract                                           | Address                                      |
+| -------------------------------------------------- | -------------------------------------------- |
+| KizashiMarketFactory                               | `0x9220ff4A3E8239E05592c8DD6203DF3eD277C756` |
+| KizashiResolver                                    | `0xf8E601C93Fd1d98833E24d578410FDaaA69A5A70` |
+| KizashiPool (implementation)                       | `0x494202DCD3094B576C9B34B0bB74be97E333CEab` |
+| KizashiOracleHook                                  | `0xDC01d60Ac4a389FD3Cf84959A8fc1e7EDcACd040` |
+| PoolManager (Uniswap v4)                           | `0xAAa363AB15694eFA8ce0E5D7462F1A6123389F11` |
+| KZT test token                                     | `0x293D9e82fe0f3bDe07164D0EDfAE19eCd33E09dc` |
+| EngineVaultFactory                                 | `0xdF9c01CFb5D448043C6fC54FA365c9645D443104` |
 | EngineBudgetVault (implementation, via Arc Studio) | `0xA631C3fF4128b9dA8581e636db88f7927A3df9cb` |
 
 The full record, including every market, is in
@@ -177,12 +179,12 @@ https://explorer.testnet.arc.io
 From the Arc Studio audit (0 critical, 4 high). These are disclosed, not yet fixed, because
 contracts are frozen for the demo:
 
-| ID | Issue | Planned fix |
-|---|---|---|
+| ID     | Issue                                                                                              | Planned fix                                                                                                        |
+| ------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | EBV-01 | Budget-vault caps don't apply to sells, so an engine key could sell vault positions at a bad price | Cap the absolute delta and require a minimum proceeds bound on sells. Autonomous mode is disabled until this ships |
-| KZR-01 | Disputes need no bond, so a tiny position can stall settlement by disputing every proposal | Bonded disputes with escalation |
-| KZR-02 | A call with too little gas can force a valid TWAP market onto the manual path | Gas floor check before the fallback |
-| KZR-03 | The liquidity guard reads current liquidity, not liquidity during the window | Record liquidity per reading in the hook |
+| KZR-01 | Disputes need no bond, so a tiny position can stall settlement by disputing every proposal         | Bonded disputes with escalation                                                                                    |
+| KZR-02 | A call with too little gas can force a valid TWAP market onto the manual path                      | Gas floor check before the fallback                                                                                |
+| KZR-03 | The liquidity guard reads current liquidity, not liquidity during the window                       | Record liquidity per reading in the hook                                                                           |
 
 Also not built: Autonomous mode, partial payouts, and x402 payments.
 
@@ -214,7 +216,7 @@ Seed real markets (IPFS → Arc → Arkiv): `cd apps/web && bun --env-file=../..
 
 The project was built with AI coding agents (Claude Code, Antigravity and Codex), working from
 written specs and reviewed by the author. The core maths was cross-checked against an independent
-Python reference and golden vectors. At runtime, the engine uses Gemini only to *propose* a bet.
+Python reference and golden vectors. At runtime, the engine uses Gemini only to _propose_ a bet.
 Compiling, pricing, risk checks and execution are deterministic code, and every trade is signed by
 the user.
 
