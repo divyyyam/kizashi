@@ -188,6 +188,10 @@ explorer. Nothing is mocked.
   emitted `TwapRejected(7, observations=8, ...)`, not a TWAP finalization. Rate limits on the
   public Arc RPC cut the swap run short, so the window held fewer than the required readings and
   the contract refused the TWAP and fell back to the manual path, as designed.
+  The resolver role then proposed bucket 2 (1.00-1.25 USDC per KZT) from the last hook observation,
+  1.08 ([propose](https://explorer.testnet.arc.io/tx/0x9d96429c0e07a6e05e94d2bb4cd2ac6d8a3416edea35d043713da3fba5b7cbe9)),
+  and it was [finalized](https://explorer.testnet.arc.io/tx/0xc00d03045567fcc7a2e214674ba3e81edff837709399eaa38d334b663a1d546c)
+  after the 30-minute dispute window. This settlement is manual, not TWAP.
 
 ### Seeded markets (image and rules on IPFS, listing on Arkiv)
 
