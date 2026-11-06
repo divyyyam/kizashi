@@ -47,6 +47,8 @@ type AppOptions = {
 export function createApp(options: AppOptions) {
   const app = express();
   app.disable("x-powered-by");
+  // Behind one reverse proxy (Nginx on EC2): use its X-Forwarded-For for client IPs and rate limits.
+  app.set("trust proxy", 1);
   app.use(requestLog(options.logger));
   app.use(
     cors({
