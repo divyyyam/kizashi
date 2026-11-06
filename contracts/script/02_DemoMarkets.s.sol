@@ -50,7 +50,7 @@ contract DemoMarkets is DeployBase {
             gridDecimals: 2,
             window: 300,
             minObservations: 10,
-            minLiquidity: 1
+            minLiquidity: 1e12
         });
 
         vm.startBroadcast(deployerKey());
