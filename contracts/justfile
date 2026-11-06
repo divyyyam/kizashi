@@ -1,0 +1,3 @@
+# Regenerate Kizashi golden vectors (byte-identical across runs).
+vectors:
+    cd ref && python3 gen_vectors.py > ../test/vectors/golden.json
