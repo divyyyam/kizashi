@@ -7,6 +7,7 @@ import { MarketMetaPanel, useMarketMetadata } from "@/features/market-meta";
 import { env } from "@/lib/env";
 import { useMarket } from "../hooks/use-market";
 import { ConnectedMarket } from "./ConnectedMarket";
+import { CrowdHistory } from "./CrowdHistory";
 
 export function MarketScreen({ marketId, chainId }: { marketId: string; chainId?: number }) {
   const result = useMarket({ marketId, chainId: chainId ?? env.NEXT_PUBLIC_CHAIN_ID });
@@ -20,6 +21,7 @@ export function MarketScreen({ marketId, chainId }: { marketId: string; chainId?
           title={meta.status === "ready" ? meta.data.metadata.question : result.data.question}
         />
         <MarketMetaPanel state={meta} />
+        <CrowdHistory marketId={result.data.marketId} />
         <ConnectedMarket
           key={`${result.data.chainId}:${result.data.marketId}`}
           market={result.data}
