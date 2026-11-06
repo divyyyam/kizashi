@@ -6,10 +6,33 @@ an on-demand tick loads context, checks stop conditions, plans, compiles, checks
 selects a candidate. Suggest mode pauses for approval, then for a user transaction.
 
 `createRuntime(settings, logger, adapters)` enables trading ticks only when both the model
-and reviewed market adapters are supplied. The executable currently supplies no market
-adapters: `/runs/:id/tick` returns a typed 503. Formula math, ABI encoding, chain receipt
-verification, live Arkiv publication and autonomous vault execution remain integration work.
-Missing data never becomes a zero balance, fabricated quote or successful trade.
+and the market adapters are supplied. With `ARC_TESTNET_RPC_URL` set, `src/index.ts` wires the
+Suggest-mode Arc adapters in `src/services/arc/`:
+
+- `loadContext` reads every allowed market's pool (`config`, `state`, `closeTime`, `prices`,
+  `positionOf`, `floorOf`) and the owner's USDC balance, all pinned to one block. Market
+  addresses come from `KizashiMarketFactory.poolOf`; the factory and USDC addresses come from
+  `contracts/deployments/<chainId>.json`.
+- `compile` turns each plan candidate into a unit shape with `@kizashi/core` (`step`, `range`,
+  `gaussianShape`, the mirrors of `Shapes.sol`), sizes it with `maxSizeForBudget`, quotes it
+  locally with `quoteTrade` and on Arc with `pool.quote(owner, delta)` at the same block, and
+  encodes `trade(delta, limitUsdc, deadline)`. Risk compares the two charges (`quote_drift`).
+- `refreshQuote` re-quotes the same approved delta at a fresh block before the user signs.
+- `confirm` waits for the receipt and requires a successful transaction from the owner to the
+  pool with identical calldata and exactly one matching `Traded` event (`tx_mismatch` /
+  `tx_unconfirmed` otherwise). The spend entry and execution row become `confirmed`.
+- With `ENGINE_ARKIV_PRIVATE_KEY` and `ARKIV_RPC_URL` set, proposals are published through
+  `@kizashi/arkiv` (one serialised signer, one proposal per run/tick/revision via `effects`) and
+  marked approved after the Arc receipt is verified. Arkiv failures record `arkiv_unavailable`
+  and the approval still goes out over the API and stream.
+
+Without a model key, ticks return `llm_unavailable`; without an Arc RPC, `vault_unavailable`.
+Autonomous vault execution is not implemented. Missing data never becomes a zero balance,
+fabricated quote or successful trade.
+
+Live checks: `bun run --cwd apps/engine verify:http [baseUrl] [marketId]` (SIWE, rules, confirm,
+tick against a running engine) and `bun run --cwd apps/engine verify:arc <marketId> <keyFile>`
+(adapter path with one operator-specified candidate and a funded test wallet; no planner).
 
 The internal planner node is `planTick`; LangGraph disallows a node and state channel both
 named `plan`. Intake and trading now use one StateGraph and one checkpoint thread ID. Confirmation
