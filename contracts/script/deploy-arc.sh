@@ -107,7 +107,7 @@ else
 fi
 
 step "6/6 addresses (deployments/5042002.json)"
-python3 -c "import json;[print(f'{k:28} {v[\"address\"]}  block {v[\"block\"]}') for k,v in json.load(open('deployments/5042002.json')).items()]"
+python3 -c "import json;[print(f'{k:28} {v[\"address\"]}  block {v[\"block\"]}') for k,v in json.load(open('deployments/5042002.json')).items() if 'address' in v]"
 echo "markets created: $(cast call "$FACTORY" 'marketCount()(uint256)' --rpc-url "$RPC")"
 echo
 echo "Done. Commit contracts/deployments/5042002.json and push. Explorer: https://explorer.testnet.arc.io/address/$FACTORY"

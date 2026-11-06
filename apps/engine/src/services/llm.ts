@@ -12,6 +12,7 @@ import { EngineServiceError } from "../errors";
 import extractRulesPrompt from "../graph/prompts/extract-rules.system.md" with { type: "text" };
 import marketKindPrompt from "../graph/prompts/marketKind.system.md" with { type: "text" };
 import planPrompt from "../graph/prompts/plan.system.md" with { type: "text" };
+import { modelSchema } from "./model-schema";
 
 const MODEL_TIMEOUT_MS = 20_000;
 const MAX_ATTEMPTS = 2;
@@ -45,7 +46,9 @@ async function invokeWithDeadline<T>(
 export async function planWithModel(model: BaseChatModel, input: string): Promise<PlannerResult> {
   let feedback = "";
   let error: PlannerResult["error"] = "llm_unavailable";
-  const structured = model.withStructuredOutput(planOutputSchema, { name: "createPlan" });
+  const structured = model.withStructuredOutput(modelSchema(planOutputSchema), {
+    name: "createPlan",
+  });
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
     try {
@@ -80,7 +83,9 @@ export function createGeminiModel(apiKey: string, model: string) {
 }
 
 export function createMarketKindSuggester(model: BaseChatModel, timeoutMs = MODEL_TIMEOUT_MS) {
-  const structured = model.withStructuredOutput(marketKindSuggestionSchema, { name: "marketKind" });
+  const structured = model.withStructuredOutput(modelSchema(marketKindSuggestionSchema), {
+    name: "marketKind",
+  });
   return async (input: MarketKindRequest) => {
     let feedback = "";
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
@@ -111,7 +116,9 @@ export function createMarketKindSuggester(model: BaseChatModel, timeoutMs = MODE
 }
 
 export function createRulesExtractor(model: BaseChatModel) {
-  const structured = model.withStructuredOutput(ruleSetSchema, { name: "extractRules" });
+  const structured = model.withStructuredOutput(modelSchema(ruleSetSchema), {
+    name: "extractRules",
+  });
   return async (text: string) => {
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
       if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));

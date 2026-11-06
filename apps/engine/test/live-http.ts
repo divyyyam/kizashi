@@ -1,13 +1,24 @@
 // Live HTTP smoke against a running engine: SIWE sign-in, JSON rules upload, confirmRules
-// resume, run readback and an on-demand tick. Uses a throwaway wallet; moves no funds.
+// resume, run readback and an on-demand tick. Without a key file it signs in with a throwaway
+// wallet and moves no funds. With a funded key file (kept outside the repo) it also approves
+// the planner's proposal, signs the trade from that wallet and posts the txHash back.
 import { strict as assert } from "node:assert";
+import { readFileSync } from "node:fs";
+import type { Hex } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createSiweMessage } from "viem/siwe";
+import { signPendingTrade } from "./live-trade";
 
-const [base = "http://127.0.0.1:8787", marketId = "3"] = process.argv.slice(2);
+const [
+  base = "http://127.0.0.1:8787",
+  marketId = "3",
+  keyFile,
+  prompt = "Back the crowd's most likely bucket if the price is fair.",
+] = process.argv.slice(2);
 const origin = "http://localhost:3000";
 const print = (...parts: unknown[]) => process.stdout.write(`${parts.map(String).join(" ")}\n`);
-const account = privateKeyToAccount(generatePrivateKey());
+const privateKey = keyFile ? (readFileSync(keyFile, "utf8").trim() as Hex) : generatePrivateKey();
+const account = privateKeyToAccount(privateKey);
 const call = async (path: string, init: RequestInit = {}, token?: string) => {
   const headers = new Headers(init.headers);
   headers.set("Origin", origin);
@@ -53,7 +64,7 @@ const rules = {
 const form = new FormData();
 form.set("v", "1");
 form.set("mode", "suggest");
-form.set("prompt", "Back the crowd's most likely bucket if the price is fair.");
+form.set("prompt", prompt);
 form.set("rules", new Blob([JSON.stringify(rules)], { type: "application/json" }), "rules.json");
 const created = await call("/runs", { method: "POST", body: form }, token);
 assert.equal(created.status, 201);
@@ -90,6 +101,7 @@ const tick = await call(
   token,
 );
 print("runId", runId, "tick status", tick.status, "code", tick.json?.error?.code ?? "none");
+if (keyFile) await signPendingTrade({ call, runId, token, privateKey, print });
 
 const stream = await fetch(`${base}/runs/${runId}/stream`, {
   headers: { Authorization: `Bearer ${token}`, Origin: origin, Accept: "text/event-stream" },

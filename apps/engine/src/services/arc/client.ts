@@ -3,10 +3,10 @@ import { type Address, createPublicClient, getAddress, http, type PublicClient }
 import { z } from "zod";
 
 const RPC_TIMEOUT_MS = 10_000;
-const deploymentsSchema = z.record(
-  z.string(),
-  z.object({ address: z.string(), block: z.number().int() }),
-);
+const contractSchema = z.object({ address: z.string(), block: z.number().int() });
+const deploymentsSchema = z
+  .object({ KizashiMarketFactory: contractSchema, USDC: contractSchema })
+  .passthrough();
 
 export type ArcDeployments = { factory: Address; usdc: Address };
 
@@ -14,12 +14,10 @@ export type ArcDeployments = { factory: Address; usdc: Address };
 export function readDeployments(chainId: number, root: URL): ArcDeployments {
   const file = new URL(`contracts/deployments/${chainId}.json`, root);
   const parsed = deploymentsSchema.parse(JSON.parse(readFileSync(file, "utf8")));
-  const pick = (name: string) => {
-    const entry = parsed[name];
-    if (!entry) throw new Error(`Deployment ${name} is missing for chain ${chainId}.`);
-    return getAddress(entry.address);
+  return {
+    factory: getAddress(parsed.KizashiMarketFactory.address),
+    usdc: getAddress(parsed.USDC.address),
   };
-  return { factory: pick("KizashiMarketFactory"), usdc: pick("USDC") };
 }
 
 /** Reads are idempotent: bounded timeout, up to three retries with exponential backoff. */

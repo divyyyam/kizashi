@@ -42,5 +42,49 @@
   "USDC": {
     "address": "0x3600000000000000000000000000000000000000",
     "block": 71016700
+  },
+  "markets": {
+    "1": {
+      "pool": "0x7467FE96C4C350D83F7c7720477c22155fEEb393",
+      "kind": "curve",
+      "resolution": "manual",
+      "n": 16,
+      "lo": 130,
+      "w": 2,
+      "closeTime": 1793969502,
+      "rulesRef": "0xb8d81e61c0396a5b2377eefeec387db155ad9c0685e33caa2e231bacf6d14da6"
+    },
+    "2": {
+      "pool": "0xC05bA222BC16b58E7EBF3Fe797DE6Ed492684A21",
+      "kind": "curve",
+      "resolution": "twap",
+      "n": 8,
+      "lo": 50,
+      "w": 25,
+      "closeTime": 1793969502,
+      "rulesRef": "0x4418ac010ba488047a9d341632bf9b8a59d5f79d070dd84c874da67d4550d716"
+    },
+    "3": {
+      "pool": "0x71Ce3111664DA28A62137cECF708f11CF15f372F",
+      "kind": "curve",
+      "resolution": "manual",
+      "n": 16,
+      "lo": 130,
+      "w": 2,
+      "closeTime": 1794119400,
+      "rulesRef": "0x6e66654e1cbb373456d390548b1c857a7e47f185689c9fc642f0f65cb1e2658c",
+      "block": 71031897
+    },
+    "4": {
+      "pool": "0xC5904fAC9d4263E5Fa3C47603C5B5dee719bcAD9",
+      "kind": "binary",
+      "resolution": "manual",
+      "n": 2,
+      "lo": 130,
+      "w": 16,
+      "closeTime": 1794033000,
+      "rulesRef": "0x4d49bdaa82806ffa0b39412e38f956de298c0f180028fb45f0d5e8e3d30dca9f",
+      "block": 71035905
+    }
   }
 }
