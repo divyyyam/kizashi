@@ -5,15 +5,21 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": ["NEXT_PUBLIC_*"]
     },
     "dev": {
       "persistent": true,
       "cache": false,
-      "env": ["WATCHPACK_POLLING", "CHOKIDAR_USEPOLLING"]
+      "env": ["NEXT_PUBLIC_*", "WATCHPACK_POLLING", "CHOKIDAR_USEPOLLING"]
     },
-    "typecheck": { "dependsOn": ["^build"] },
-    "test": { "dependsOn": ["^build"] },
+    "typecheck": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "env": ["NEXT_PUBLIC_*"]
+    },
     "codegen": {
       "inputs": ["../../contracts/out/**", "../../contracts/deployments/**"],
       "outputs": ["src/generated.ts"]
