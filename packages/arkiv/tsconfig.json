@@ -1,4 +1,9 @@
 {
   "extends": "@kizashi/config/tsconfig.library.json",
+  "compilerOptions": {
+    // @arkiv-network/sdk 1.0.1 does not export `ColumnProperties`, so inferred schema types cannot be
+    // named in .d.ts output (TS4023). Consumers import ./src directly, so no declarations are needed.
+    "declaration": false
+  },
   "include": ["src"]
 }
