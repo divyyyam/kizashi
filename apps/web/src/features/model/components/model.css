@@ -1,4 +1,34 @@
 /* /model is a viewport, with independently movable content. */
+.model-studio {
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.model-studio-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+.model-activity {
+  max-height: 30rem;
+}
+@media (width >= 80rem) {
+  .model-studio {
+    overflow: hidden;
+  }
+  .model-studio-grid {
+    grid-template-columns: minmax(22rem, 0.85fr) minmax(0, 1.65fr);
+  }
+  .model-strategy,
+  .model-console {
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .model-strategy {
+    align-self: start;
+    max-height: 100%;
+  }
+  .model-studio > header {
+    flex-shrink: 0;
+  }
+}
 #app-main:has(.model-route) {
   height: calc(100dvh - var(--spacing-topbar));
   min-height: 0;
