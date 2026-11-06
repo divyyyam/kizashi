@@ -1,5 +1,5 @@
 {
-  "name": "@kizashi/formula",
+  "name": "@kizashi/core",
   "private": true,
   "type": "module",
   "exports": {

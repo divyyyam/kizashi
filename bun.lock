@@ -96,6 +96,12 @@
         "@kizashi/config": "workspace:*",
       },
     },
+    "packages/core": {
+      "name": "@kizashi/core",
+      "devDependencies": {
+        "@kizashi/config": "workspace:*",
+      },
+    },
     "packages/db": {
       "name": "@kizashi/db",
       "dependencies": {
@@ -105,12 +111,6 @@
       },
       "devDependencies": {
         "prisma": "7.10.1",
-      },
-    },
-    "packages/formula": {
-      "name": "@kizashi/formula",
-      "devDependencies": {
-        "@kizashi/config": "workspace:*",
       },
     },
     "packages/schemas": {
@@ -265,11 +265,11 @@
 
     "@kizashi/contracts": ["@kizashi/contracts@workspace:packages/contracts"],
 
+    "@kizashi/core": ["@kizashi/core@workspace:packages/core"],
+
     "@kizashi/db": ["@kizashi/db@workspace:packages/db"],
 
     "@kizashi/engine": ["@kizashi/engine@workspace:apps/engine"],
-
-    "@kizashi/formula": ["@kizashi/formula@workspace:packages/formula"],
 
     "@kizashi/indexer": ["@kizashi/indexer@workspace:apps/indexer"],
 
