@@ -24,7 +24,11 @@ export async function signPendingTrade(input: {
   const json = { "Content-Type": "application/json" };
   const pending = async () =>
     ((await call(`/runs/${runId}`, {}, token)).json?.pending ?? null) as Pending | null;
-  const approval = await pending();
+  let approval = await pending();
+  for (let i = 0; i < 20 && !approval?.tradeId; i++) {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    approval = await pending();
+  }
   if (!approval?.tradeId || !("trade" in approval)) {
     print("no approval pending; the planner held or risk rejected the plan");
     return;

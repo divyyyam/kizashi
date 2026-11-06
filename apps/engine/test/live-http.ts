@@ -59,7 +59,7 @@ const rules = {
   stopAtSec: nowSec + 6 * 3600,
   allowedMarketIds: [marketId],
   allowedShapes: ["binary", "curve"],
-  notes: "Live HTTP smoke rules",
+  notes: prompt,
 };
 const form = new FormData();
 form.set("v", "1");
