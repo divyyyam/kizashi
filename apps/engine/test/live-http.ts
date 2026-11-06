@@ -90,3 +90,24 @@ const tick = await call(
   token,
 );
 print("runId", runId, "tick status", tick.status, "code", tick.json?.error?.code ?? "none");
+
+const stream = await fetch(`${base}/runs/${runId}/stream`, {
+  headers: { Authorization: `Bearer ${token}`, Origin: origin, Accept: "text/event-stream" },
+  signal: AbortSignal.timeout(4000),
+});
+print("GET stream", stream.status, stream.headers.get("content-type"));
+const reader = stream.body?.getReader();
+let text = "";
+try {
+  while (reader && text.length < 2000) {
+    const chunk = await reader.read();
+    if (chunk.done) break;
+    text += new TextDecoder().decode(chunk.value);
+  }
+} catch {
+  // The stream stays open; the abort after four seconds ends the read.
+}
+const events = text
+  .split("\n")
+  .filter((line) => line.startsWith("event:") || line.startsWith("data:"));
+print("stream events", events.length, events.slice(0, 6).join(" | "));
