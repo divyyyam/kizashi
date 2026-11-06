@@ -174,6 +174,73 @@ The full record, including every market, is in
 [`contracts/deployments/5042002.json`](contracts/deployments/5042002.json). Explorer:
 https://explorer.testnet.arc.io
 
+## On-chain evidence
+
+Everything below happened on Arc testnet (5042002) or Arkiv Rabdi (7794095) and is linked to its
+explorer. Nothing is mocked.
+
+### Uniswap v4 TWAP settlement
+
+- Market #2 (curve market resolved from the KZT/USDC v4 pool TWAP): settled by
+  [`resolveFromTwap(2)`](https://explorer.testnet.arc.io/tx/0x7bcb093b18df6885db0068ff8c2885983195e57d9ec2bb01ee66b90d69c85b00),
+  `Finalized(2, bucket 2, mode TWAP)`.
+- Market #7 (seeded KZT/USDC close at 00:50 IST, 7 Nov): [`resolveFromTwap(7)`](https://explorer.testnet.arc.io/tx/0x2cb5f5b2309e0d547a54e1ab6cc593c1a16960e0031bc77653483ad3fbbc29eb)
+  emitted `TwapRejected(7, observations=8, ...)`, not a TWAP finalization. Rate limits on the
+  public Arc RPC cut the swap run short, so the window held fewer than the required readings and
+  the contract refused the TWAP and fell back to the manual path, as designed.
+
+### Seeded markets (image and rules on IPFS, listing on Arkiv)
+
+| #   | Market                                                                     | createMarket tx                                                                                                        | Metadata (IPFS)   | Arkiv listing                                                                                                                   |
+| --- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| 5   | Will ETH close above $5,000 on 31 December 2026?                           | [`0x965d29b6…`](https://explorer.testnet.arc.io/tx/0x965d29b67c3cabbdd3431f0dffa8fcc1a16afee94367fc670eb18bdc0aca580f) | `bafkreievhzzuq…` | [`0x0d0d4e8c…`](https://rabdi.explorer.arkiv.network/entity/0x0d0d4e8c1f8f4c003924a832dcce11fb65ce088a615648dcc32291a3c0820cf9) |
+| 6   | What will BTC trade at on 31 December 2026?                                | [`0x740e769a…`](https://explorer.testnet.arc.io/tx/0x740e769aac28bf81f32b64851ef8a85a28f8da2614969c44659e5d4044d2fc55) | `bafkreigmk6ckc…` | [`0xc4d53e7d…`](https://rabdi.explorer.arkiv.network/entity/0xc4d53e7d65b1526f681b603a0af1ad8268fe8567267360262b63e50eba3c46ca) |
+| 7   | Where will KZT/USDC settle at the 00:50 IST close on 7 November?           | [`0x7121e36c…`](https://explorer.testnet.arc.io/tx/0x7121e36c4a83c93c485e34bb9144f1878883f9221d875b37c8d68a90e6ccac3c) | `bafkreibrpakn7…` | [`0x35b5c830…`](https://rabdi.explorer.arkiv.network/entity/0x35b5c830de0a754fa0030399ec51788a1c7257f626ebcd5bb2d000139cf0eecd) |
+| 8   | Will Arsenal be top of the Premier League on 1 January 2027?               | [`0xb909fb49…`](https://explorer.testnet.arc.io/tx/0xb909fb49f0000065277a76ba8e8749ac0373156708a58ffb1ae2ce14011675d0) | `bafkreibnsrjav…` | [`0x5b860619…`](https://rabdi.explorer.arkiv.network/entity/0x5b8606194841d64723c251c7b5470415d84e40929a3c452e832332f0b79564a9) |
+| 9   | How many goals will be scored in the Premier League on Boxing Day 2026?    | [`0x3c92885b…`](https://explorer.testnet.arc.io/tx/0x3c92885b98b9be60b44d59586638daa71d031e37cbcf42cb0fb338f408647e86) | `bafkreifgut5gp…` | [`0x841ec992…`](https://rabdi.explorer.arkiv.network/entity/0x841ec992c80e5eb57d91db8d83e80069576a3d6622ff83c5c986446703fc11ca) |
+| 10  | Fastest delivery in men's international cricket in December 2026?          | [`0x8fc708c4…`](https://explorer.testnet.arc.io/tx/0x8fc708c416ef5e0c00022189b19cfd6ce0929d4543c3a6f9f8b3ab41d83555af) | `bafkreihzyxllz…` | [`0x2eaebbfa…`](https://rabdi.explorer.arkiv.network/entity/0x2eaebbfa72148096b8d9d23c4befe35a188d326ced413c58110fe752a1953de3) |
+| 11  | Will anyone score a double century in men's Test cricket in December 2026? | [`0x3a821e09…`](https://explorer.testnet.arc.io/tx/0x3a821e09f47eedaa7b5354177e6d1ab72538abdb5935f21bbdb7b171ec86e30d) | `bafkreihhwall7…` | [`0x7f9a94d3…`](https://rabdi.explorer.arkiv.network/entity/0x7f9a94d35983cea9f069478db796b38b29a422b9b190dc80279c14aa27fb2fdb) |
+| 12  | Will more than 400 projects be submitted at ETHGlobal Mumbai?              | [`0xb1866c97…`](https://explorer.testnet.arc.io/tx/0xb1866c9751b8f9d678f6e5e097685cf7b4274319b9150153e444b214e0faf55c) | `bafkreialurs2i…` | [`0x98319ac2…`](https://rabdi.explorer.arkiv.network/entity/0x98319ac2bbd56bd00a22358e6f0e80e0d20390222a9086d77726feea53659bd4) |
+
+### Arkiv
+
+- Smoke write: [entity](https://rabdi.explorer.arkiv.network/entity/0x904eeceb4608a6202e16357b263c9a8c98ec6faf75ef556611b7997445fa5c3f),
+  [tx](https://rabdi.explorer.arkiv.network/tx/0xc43adbc4a7bf7412bfb3ed29f97cf106a28f82af5ea12b9d055b2563078ec141).
+- Curve snapshot, market 9 (second point after the engine trade): [entity](https://rabdi.explorer.arkiv.network/entity/0xe37b073f5aead48ba27fd467566e62df5fa1b4254a40def1caaaea7b04977520).
+- Engine proposal, market 9: [entity](https://rabdi.explorer.arkiv.network/entity/0x65acb548100dac8517ad535484c545165aa54458b6373279374a6d50d4eb9858), patched to `approved` with the trade hash.
+
+### Netting, on chain
+
+On market 9 one wallet sold a narrow curve around 24 goals, then bought a wider curve. Gross
+requirement 0.50 USDC, netted 0.25 USDC, freed 0.25 USDC; the pool's `floorOf` reads the same
+0.25, and the position replay matches exactly.
+Txs: [sell](https://explorer.testnet.arc.io/tx/0x8a70cd717c7dd0ecc01c15bdfc21d0662573056a607dbab3a89e1a630d2ccd3b),
+[hedge](https://explorer.testnet.arc.io/tx/0x6255c79611542dfdcce2cb3f09f2c428a818890d259ef4bea6d0b740af0fe2c1),
+[release of the freed 0.25](https://explorer.testnet.arc.io/tx/0xfd8299cc8f49b5dc699c6607c6d51a13b74a6c1b016d4aef6cd5ebc85f8a851c).
+Other trades: football curve [`0xbe95…`](https://explorer.testnet.arc.io/tx/0xbe952ccab1563d5d91ff1e516478da5f222af927f2b21fa509a29984b09b0c89),
+cricket curve [`0xddbc…`](https://explorer.testnet.arc.io/tx/0xddbcaaa4f9a9c4ac88bd33904b3ec33c3e363013f2ce29f89c27e68180902c56),
+ETH YES [`0x1e61…`](https://explorer.testnet.arc.io/tx/0x1e619878ae4c817cd7e448062315e5973e39ae179fe1b497425220959ba8747b).
+
+### Engine run (Suggest mode)
+
+Prompt "Bet 0.2 USDC that total Boxing Day goals land near 24, width 4" on market 9: the
+planner proposed a curve trade, the user wallet approved
+([`0x8faf…`](https://explorer.testnet.arc.io/tx/0x8fafb154f464cc733dbed0959bb4ffff01635469f1feffed9640886bd512bf644)) and traded
+([`0x236b…`](https://explorer.testnet.arc.io/tx/0x236bab371a97983cb7655b2c517a672caa5560417aca6809c0f69c20143980d7)).
+
+### Market 1 lifecycle
+
+Proposed ([`0x33f7…`](https://explorer.testnet.arc.io/tx/0x33f77e976a973a6ce8f39bed418978e51e89001b2c0dec17cbd35c59f67f8b06),
+bucket 0 as a placeholder: a demo market with no real-world outcome), finalized after the dispute
+window ([`0xadc8…`](https://explorer.testnet.arc.io/tx/0xadc80528a96988b386b0af3c07c9985915e7e32174054213b44d0883c08a5901)), swept by the
+creator ([`0xa018…`](https://explorer.testnet.arc.io/tx/0xa01852b89661b24232e4ba531acc8942198444d8502c9e712eeaeb7fa877d10f)).
+No one traded market 1, so there was nothing to redeem.
+
+### Contract verification
+
+MarketFactory and OracleHook are fully verified on Blockscout; the EngineBudgetVault
+implementation is verified (partial match).
+
 ## Known issues
 
 From the Arc Studio audit (0 critical, 4 high). These are disclosed, not yet fixed, because
