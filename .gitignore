@@ -33,3 +33,6 @@ target/
 
 # Agent git worktrees
 .worktrees/
+
+# local anvil deployment files
+contracts/deployments/31337*.json
