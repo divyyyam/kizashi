@@ -1,0 +1,4 @@
+{
+  "extends": "@kizashi/config/tsconfig.bun.json",
+  "include": ["src"]
+}

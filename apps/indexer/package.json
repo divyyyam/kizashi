@@ -1,0 +1,11 @@
+{
+  "name": "@kizashi/indexer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@kizashi/config": "workspace:*"
+  }
+}
