@@ -1,0 +1,213 @@
+/* Intro pre-hide. MotionFlag adds `html.motion` before paint when motion is allowed; GSAP reveals
+   with autoAlpha. If the script never runs, the failsafe shows everything after 3.5 s. */
+html.motion [data-intro] {
+  visibility: hidden;
+  animation: intro-failsafe 0s 3.5s forwards;
+}
+@keyframes intro-failsafe {
+  to {
+    visibility: visible;
+  }
+}
+
+/* Header: slides away on scroll down, returns on scroll up; the rule fills with page progress. */
+.site-header {
+  transition: transform 420ms var(--ease-out-soft);
+}
+.site-header[data-hidden="true"] {
+  transform: translateY(-100%);
+}
+.site-progress {
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 1px;
+  background: var(--color-signal);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+/* Statement band between the hero and the chapters. */
+.statement {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  display: grid;
+  align-content: center;
+  gap: 2.5rem;
+  min-height: min(52rem, 100svh);
+  padding: clamp(5rem, 12vw, 11rem) var(--page-margin);
+  border-top: 1px solid var(--color-border);
+}
+.statement-mark {
+  position: absolute;
+  z-index: -1;
+  right: -4vw;
+  top: 50%;
+  translate: 0 -50%;
+  font:
+    400 clamp(18rem, 48vw, 46rem) / 1 var(--font-mark),
+    var(--font-display);
+  color: var(--color-signal);
+  opacity: 0.07;
+  user-select: none;
+}
+.statement-text {
+  max-width: 15ch;
+  font: 400 clamp(3.2rem, 8.4vw, 9.5rem) / 0.92 var(--font-display);
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+.statement-text em {
+  position: relative;
+  color: var(--color-signal);
+}
+.statement-rule {
+  display: block;
+  height: 2px;
+  width: min(100%, 34rem);
+  background: var(--color-signal);
+  transform-origin: 0 50%;
+}
+
+/* Footer wordmark letters lift one after another on hover. */
+.footer-word .char {
+  display: inline-block;
+  will-change: auto;
+}
+
+/* Cursor: a dot that tracks exactly and a ring that trails. Fine pointers only. */
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 90;
+  pointer-events: none;
+  border-radius: 50%;
+  opacity: 0;
+}
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: var(--color-signal);
+}
+.cursor-ring {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  border: 1px solid var(--color-text-muted);
+  color: var(--color-bg);
+  font: 500 10px / 1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition:
+    background-color 200ms var(--ease-out-soft),
+    border-color 200ms var(--ease-out-soft);
+}
+.cursor-ring[data-state="link"] {
+  border-color: var(--color-signal);
+}
+.cursor-ring[data-state="drag"] {
+  background: var(--color-signal);
+  border-color: var(--color-signal);
+}
+html.cursor-on .cursor-dot,
+html.cursor-on .cursor-ring {
+  opacity: 1;
+}
+
+/* With the custom cursor active, hide the native one except where text is typed. */
+html.cursor-on,
+html.cursor-on * {
+  cursor: none;
+}
+html.cursor-on :is(input:not([type="range"]), textarea, [contenteditable]) {
+  cursor: text;
+}
+
+/* Intro curtain: visible only while `html.curtain-play` is set (first landing visit, motion on). */
+.intro-curtain {
+  display: none;
+}
+html.curtain-play .intro-curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1.5rem;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-signal);
+  animation: curtain-failsafe 0s 4s forwards;
+}
+@keyframes curtain-failsafe {
+  to {
+    visibility: hidden;
+  }
+}
+.curtain-mark {
+  width: 69%;
+  color: var(--color-accent-fg);
+}
+.curtain-seal {
+  display: grid;
+  place-items: center;
+  width: clamp(5.75rem, 11vw, 9rem);
+  aspect-ratio: 1;
+  background: var(--color-accent);
+}
+.curtain-mark path {
+  transform-box: fill-box;
+}
+.curtain-word {
+  overflow: clip;
+  font: 400 clamp(1.5rem, 3vw, 2.4rem) / 1 var(--font-display);
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+}
+
+/* Headline letters near the pointer take the signal colour. */
+.ink-headline .char {
+  transition: color 260ms var(--ease-out-soft);
+}
+.ink-headline .char.is-near {
+  color: var(--color-signal);
+}
+
+/* Name band before the footer. */
+.velocity-band {
+  overflow: clip;
+  display: grid;
+  gap: 0.2em;
+  padding-block: clamp(3rem, 8vw, 7rem);
+  border-top: 1px solid var(--color-border);
+  font: 400 clamp(3.5rem, 11vw, 12rem) / 0.95 var(--font-display);
+  letter-spacing: -0.045em;
+  user-select: none;
+}
+.velocity-row {
+  display: flex;
+  width: max-content;
+  white-space: nowrap;
+}
+.velocity-row:nth-child(2) {
+  color: transparent;
+  -webkit-text-stroke: 1px var(--color-text-muted);
+}
+.velocity-row span {
+  display: inline-flex;
+  align-items: center;
+}
+.velocity-row i {
+  margin-inline: 0.35em;
+  font:
+    400 0.45em / 1 var(--font-mark),
+    var(--font-display);
+  font-style: normal;
+  color: var(--color-signal);
+  -webkit-text-stroke: 0;
+}

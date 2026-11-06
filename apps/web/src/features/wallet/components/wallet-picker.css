@@ -1,0 +1,271 @@
+.wallet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: color-mix(in srgb, var(--color-bg) 82%, transparent);
+}
+.wallet-dialog {
+  position: fixed;
+  z-index: 91;
+  inset: 50% auto auto 50%;
+  translate: -50% -50%;
+  width: min(41rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.4fr);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.wallet-plate {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  overflow: hidden;
+  padding: 1.5rem;
+  border-right: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-accent) 7%, var(--color-bg));
+}
+.wallet-wordmark {
+  font: 400 1.65rem / 1 var(--font-display);
+  letter-spacing: -0.035em;
+}
+.wallet-diagram {
+  width: calc(100% + 1.25rem);
+  align-self: center;
+}
+.wallet-guides {
+  stroke: var(--color-border);
+  stroke-dasharray: 2 5;
+}
+.wallet-tile {
+  fill: var(--color-surface-raised);
+  stroke: var(--color-border-strong);
+}
+.wallet-edge {
+  fill: var(--color-surface);
+  stroke: var(--color-border-strong);
+}
+.wallet-layer-base {
+  translate: 0 36px;
+}
+.wallet-layer-middle {
+  translate: 0 19px;
+}
+.wallet-layer-face .wallet-tile {
+  fill: var(--color-accent);
+  stroke: var(--color-signal);
+}
+.wallet-engraving {
+  color: var(--color-accent-fg);
+  width: 100%;
+  height: 100%;
+}
+.wallet-network {
+  display: grid;
+  gap: 0.25rem;
+  font-size: var(--text-small);
+}
+.wallet-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2rem;
+  min-height: 19rem;
+  padding: 3.4rem 1.7rem 1.35rem;
+}
+.wallet-close {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+}
+.wallet-close:hover {
+  background: var(--color-surface-raised);
+}
+.wallet-step {
+  display: grid;
+  gap: 1.25rem;
+}
+.wallet-title {
+  font: 400 clamp(2.15rem, 4vw, 2.8rem) / 1 var(--font-display);
+  letter-spacing: -0.035em;
+}
+.wallet-description {
+  margin-top: 0.6rem;
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}
+.wallet-options,
+.wallet-recovery {
+  display: grid;
+  gap: 0.6rem;
+}
+.wallet-option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.75rem;
+  text-align: left;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+}
+.wallet-option:is(:hover, :focus-visible) {
+  border-color: var(--color-signal);
+}
+.wallet-option strong,
+.wallet-option small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.wallet-option small {
+  color: var(--color-text-muted);
+}
+.wallet-option-icon {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+.wallet-option-arrow {
+  color: var(--color-signal);
+}
+.wallet-install {
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+.wallet-install p + p {
+  margin-top: 0.25rem;
+}
+.wallet-install a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.5rem;
+  color: var(--color-signal);
+  font-size: var(--text-small);
+}
+.wallet-disclosure {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-faint);
+  font-size: var(--text-small);
+}
+.wallet-fingerprint {
+  color: var(--color-signal);
+}
+@media (max-width: 38rem) {
+  .wallet-dialog {
+    inset: auto 0.5rem max(0.5rem, env(safe-area-inset-bottom));
+    width: auto;
+    translate: none;
+    grid-template-columns: 1fr;
+    max-height: calc(100dvh - 1rem);
+  }
+  .wallet-plate {
+    position: relative;
+    border: 0;
+    border-bottom: 1px solid var(--color-border);
+    padding: 1.1rem 1.35rem;
+  }
+  .wallet-diagram {
+    position: absolute;
+    right: 2.8rem;
+    top: 50%;
+    translate: 0 -50%;
+    width: 7.8rem;
+  }
+  .wallet-body {
+    position: static;
+    min-height: auto;
+    gap: 1.4rem;
+    padding: 1.4rem;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wallet-overlay[data-state="open"] {
+    animation: wallet-fade 180ms ease-out both;
+  }
+  .wallet-overlay[data-state="closed"] {
+    animation: wallet-fade 140ms ease-in reverse both;
+  }
+  .wallet-dialog[data-state="open"] {
+    animation: wallet-rise 360ms var(--ease-out-soft) both;
+  }
+  .wallet-dialog[data-state="closed"] {
+    animation: wallet-rise 150ms ease-in reverse both;
+  }
+  .wallet-step {
+    animation: wallet-rise 280ms var(--ease-out-soft);
+  }
+  .wallet-layer {
+    transition: translate 480ms var(--ease-out-soft);
+  }
+  .wallet-dialog[data-state="open"] .wallet-diagram {
+    animation: wallet-unfold 600ms var(--ease-out-soft);
+  }
+  .wallet-dialog[data-phase="pending"] .wallet-layer-face {
+    animation: wallet-wait 1.7s ease-in-out infinite alternate;
+  }
+  .wallet-dialog[data-phase="success"] .wallet-layer-base {
+    translate: 0 10px;
+  }
+  .wallet-dialog[data-phase="success"] .wallet-layer-middle {
+    translate: 0 5px;
+  }
+  .wallet-option-arrow,
+  .wallet-trigger svg:last-child {
+    transition: transform 180ms var(--ease-out-soft);
+  }
+  .wallet-option:is(:hover, :focus-visible) .wallet-option-arrow {
+    transform: translateX(3px);
+  }
+  .wallet-trigger:hover svg:last-child {
+    transform: translate(2px, -2px);
+  }
+}
+@keyframes wallet-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes wallet-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes wallet-unfold {
+  from {
+    opacity: 0;
+    transform: translateY(9px) rotate(-6deg);
+  }
+}
+@keyframes wallet-wait {
+  to {
+    transform: translateY(-7px);
+  }
+}

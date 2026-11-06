@@ -1,0 +1,18 @@
+export const voiceCopy = {
+  start: "Dictate strategy", stop: "Stop & transcribe", cancel: "Cancel recording",
+  requesting: "Allow microphone access to begin.", recording: "Recording",
+  transcribing: "Transcribing your recording…", review: "Review transcript",
+  insert: "Add to strategy", discard: "Discard", edit: "Edit transcript",
+  privacy: "Audio is sent to Google for transcription when you stop. Review the text before adding it to your strategy.",
+  limit: "Up to 2 minutes. Nothing is submitted to the engine automatically.",
+  permission: "Microphone access was denied. Allow it in your browser settings and try again.",
+  missing: "No microphone was found. Connect one and try again.",
+  unavailable: "Voice transcription is not configured. You can still type your strategy.",
+  unsupported: "Recording needs a supported browser on HTTPS or localhost. You can still type your strategy.",
+  failed: "The recording could not be transcribed. Try again or type your strategy.",
+  empty: "No speech was detected. Try again and speak close to your microphone.",
+  tooLarge: "The recording is too large. Try a shorter recording.",
+  rateLimited: "Too many transcription requests. Wait a minute and try again.",
+  tooLong: "This transcript would exceed the 2,000-character strategy limit. Shorten it before adding.",
+  seconds: (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`,
+} as const;

@@ -1,15 +1,17 @@
 "use client";
 
 import { ConnectButton as RainbowConnectButton } from "@rainbow-me/rainbowkit";
+import { ArrowUpRight, Wallet } from "lucide-react";
 import { getAddress } from "viem";
 import { Button } from "@/components/ui/button";
 import { copy } from "@/content/copy";
 import { cn } from "@/lib/cn";
 import { AccountMenu } from "./AccountMenu";
+import { useOpenWalletPicker } from "./WalletPickerProvider";
 import { WrongNetworkButton } from "./WrongNetworkButton";
 
-// Fixed width of the widest state (address + balance) so connecting never shifts the navbar.
-const SLOT = "w-60";
+// Compact on phones, with a reserved label width on the desktop toolbar.
+const SLOT = "w-auto max-w-full md:min-w-40";
 
 type ConnectButtonProps = {
   readonly className?: string;
@@ -17,17 +19,30 @@ type ConnectButtonProps = {
 
 /** Wallet entry point with the states of UI-guide §8: not mounted, disconnected, wrong network, connected. */
 export function ConnectButton({ className }: ConnectButtonProps) {
+  const show = useOpenWalletPicker();
   return (
     <RainbowConnectButton.Custom>
-      {({ account, chain, mounted, openConnectModal, connectModalOpen }) => {
+      {({ account, chain, mounted }) => {
         const slot = cn(SLOT, className);
         if (!mounted) {
-          return <Button className={slot} disabled aria-hidden tabIndex={-1} />;
+          return (
+            <Button className={slot} disabled aria-hidden tabIndex={-1}>
+              <Wallet size={16} />
+              {copy.connect.button}
+            </Button>
+          );
         }
         if (account === undefined || chain === undefined) {
           return (
-            <Button className={slot} onClick={openConnectModal} disabled={connectModalOpen}>
-              {connectModalOpen ? copy.connect.connecting : copy.connect.button}
+            <Button
+              className={cn(slot, "wallet-trigger")}
+              aria-haspopup="dialog"
+              data-wallet-control
+              onClick={(event) => show(event.currentTarget)}
+            >
+              <Wallet size={16} aria-hidden />
+              {copy.connect.button}
+              <ArrowUpRight className="hidden sm:block" size={15} aria-hidden />
             </Button>
           );
         }

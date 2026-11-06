@@ -14,6 +14,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_ARC_RPC_URL: z.url(),
   // Optional until Divyam supplies one: without it the wallet list is browser (injected) wallets only.
   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: z.string().min(1).optional(),
+  NEXT_PUBLIC_ARKIV_LISTING_WRITER: z.string().min(1).optional(),
 });
 
 export type WebEnv = z.infer<typeof envSchema>;
@@ -25,6 +26,7 @@ function parseEnv(): WebEnv {
     NEXT_PUBLIC_ARC_RPC_URL: process.env.NEXT_PUBLIC_ARC_RPC_URL,
     NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID:
       process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || undefined,
+    NEXT_PUBLIC_ARKIV_LISTING_WRITER: process.env.NEXT_PUBLIC_ARKIV_LISTING_WRITER || undefined,
   });
   if (!result.success) {
     const issues = result.error.issues

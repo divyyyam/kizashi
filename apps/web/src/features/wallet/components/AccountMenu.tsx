@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, ExternalLink, LogOut } from "lucide-react";
+import { ChevronDown, Copy, ExternalLink, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import type { Address } from "viem";
 import { useDisconnect } from "wagmi";
@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { copy } from "@/content/copy";
+import { cn } from "@/lib/cn";
 import { addressUrl } from "@/lib/explorer";
 import { formatAddress, formatUsdc } from "@/lib/format";
 import { appChain } from "@/lib/wagmi";
@@ -42,13 +43,26 @@ export function AccountMenu({ address, className }: AccountMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="secondary" className={className} aria-label={copy.connect.accountMenu}>
+        <Button
+          data-wallet-control
+          variant="secondary"
+          className={cn(
+            "group gap-2.5 data-[state=open]:border-border-strong data-[state=open]:bg-surface-raised",
+            className,
+          )}
+          aria-label={copy.connect.accountMenu}
+        >
           <span className="tabular text-text" title={address}>
             {formatAddress(address)}
           </span>
           {balance.status === "ready" ? (
             <span className="tabular text-text-muted">{formatUsdc(balance.data)}</span>
           ) : null}
+          <ChevronDown
+            aria-hidden
+            strokeWidth={1.5}
+            className="size-3.5 text-text-muted transition-transform duration-150 group-data-[state=open]:rotate-180"
+          />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

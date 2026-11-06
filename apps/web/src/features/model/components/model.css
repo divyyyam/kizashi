@@ -1,0 +1,227 @@
+/* /model is a viewport, with independently movable content. */
+#app-main:has(.model-route) {
+  height: calc(100dvh - var(--spacing-topbar));
+  min-height: 0;
+  flex: none;
+  overflow: hidden;
+}
+#app-main:has(.model-route) + footer {
+  display: none;
+}
+.terminal-page:has(.model-route) {
+  height: 100%;
+  min-height: 0;
+}
+.model-route {
+  min-height: 0;
+  max-width: none;
+  overflow: hidden;
+}
+.model-workspace {
+  flex: 1;
+  overflow: hidden;
+}
+.model-workspace > header {
+  flex-shrink: 0;
+}
+.model-workbench {
+  overflow: hidden;
+}
+.model-idle {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.model-canvas {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: clip;
+  isolation: isolate;
+  touch-action: none;
+  cursor: grab;
+  background-image: radial-gradient(circle, var(--color-border-strong) 1px, transparent 1px);
+}
+.model-canvas[data-dragging="true"] {
+  cursor: grabbing;
+  user-select: none;
+}
+.model-canvas-world {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.model-canvas-panel {
+  position: absolute;
+  cursor: auto;
+}
+.model-panel-handle {
+  display: flex;
+  width: 100%;
+  height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  cursor: grab;
+  touch-action: none;
+  color: var(--color-text-faint);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-border);
+}
+.model-panel-handle:hover,
+.model-panel-handle:focus-visible {
+  color: var(--color-text);
+  background: var(--color-surface-raised);
+}
+.model-panel-handle:active {
+  cursor: grabbing;
+}
+.model-panel-body {
+  padding: 20px 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+  background: var(--color-bg);
+  touch-action: pan-y;
+}
+.model-canvas-panel[data-canvas-panel="analysis"] .model-panel-body {
+  padding: 24px;
+}
+.model-canvas-nav,
+.model-zoom-dock {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--color-bg) 65%, transparent);
+  cursor: auto;
+}
+.model-canvas-nav {
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% - 16px);
+}
+.model-canvas-nav button {
+  padding: 0 12px;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.model-canvas-nav button[aria-pressed="true"] {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
+.model-canvas-nav button,
+.model-zoom-dock button {
+  height: 40px;
+  border-radius: 4px;
+}
+.model-canvas-nav button:hover,
+.model-zoom-dock button:hover {
+  background: var(--color-surface-raised);
+}
+.model-zoom-dock {
+  bottom: 14px;
+  left: 14px;
+}
+.model-zoom-dock button {
+  display: grid;
+  width: 40px;
+  place-items: center;
+  color: var(--color-text-muted);
+}
+.model-zoom-dock output {
+  width: 48px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text);
+}
+.model-canvas-hint {
+  position: absolute;
+  bottom: 28px;
+  right: 20px;
+  margin-left: 210px;
+  color: var(--color-text-faint);
+  font-size: 11px;
+  pointer-events: none;
+}
+.model-decision-grid {
+  grid-template-columns: minmax(0, 1.4fr) minmax(15rem, 1fr);
+}
+.model-actions {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+.model-chart {
+  background-image: linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
+  background-size: 100% 25%;
+}
+.model-chart .model-distribution {
+  height: 200px;
+}
+@media (width < 48rem) {
+  .model-canvas-hint {
+    display: none;
+  }
+  .model-canvas-nav button {
+    padding: 0 9px;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .model-canvas-world {
+    transition: transform 140ms var(--ease-out-soft);
+  }
+  .model-canvas[data-dragging="true"] .model-canvas-world {
+    transition: none;
+  }
+  .model-drop,
+  .model-rise {
+    animation: model-rise var(--motion-panel) var(--ease-out-soft) both;
+  }
+  .model-draw {
+    animation: model-draw var(--motion-brush) var(--ease-out-soft) both;
+  }
+  .model-sweep {
+    animation: model-sweep 1.3s ease-in-out infinite;
+  }
+  .model-grow {
+    animation: model-grow var(--motion-brush) var(--ease-out-soft) both;
+  }
+}
+@keyframes model-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes model-draw {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes model-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(220%);
+  }
+}
+@keyframes model-grow {
+  from {
+    transform: scaleX(0);
+  }
+}

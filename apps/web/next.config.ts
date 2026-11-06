@@ -12,6 +12,15 @@ const nextConfig: NextConfig = {
   // @x402/* peers that are not installed. Loading it from node_modules at SSR time (instead of
   // bundling) keeps those optional imports unresolved until called, which this app never does.
   serverExternalPackages: ["@coinbase/cdp-sdk"],
+  async rewrites() {
+    return [
+      { source: "/market/:id", destination: "/markets/:id" },
+      { source: "/create", destination: "/markets/new" },
+    ];
+  },
+  experimental: {
+    optimizePackageImports: ["lucide-react", "@rainbow-me/rainbowkit"],
+  },
 };
 
 export default nextConfig;

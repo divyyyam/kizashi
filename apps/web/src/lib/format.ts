@@ -32,7 +32,7 @@ export function formatUsdc(amount: bigint, opts?: FormatUsdcOptions): string {
   // Sub-cent: > 0 but would display as 0.00
   const isTiny = abs > 0n && abs < 10_000n; // < 0.01 USDC
   if (isTiny) {
-    const result = "< 0.01";
+    const result = isNegative ? "> -0.01" : "< 0.01";
     return opts?.suffix === true ? `${result} USDC` : result;
   }
 
@@ -65,4 +65,23 @@ export function formatPercent(wad: bigint): string {
 export function formatAddress(address: `0x${string}`): string {
   if (address.length < 10) return address;
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
+}
+
+/** Exact market-unit decimal, including negative sub-unit values. */
+export function formatGrid(value: bigint, precision: number): string {
+  const scale = 10n ** BigInt(precision);
+  const absolute = value < 0n ? -value : value;
+  const fraction = (absolute % scale).toString().padStart(precision, "0");
+  return `${value < 0n ? "-" : ""}${absolute / scale}${precision > 0 ? `.${fraction}` : ""}`;
+}
+
+/** WAD money rounds to transfer units only at the display boundary. */
+export function formatWad(value: bigint): string {
+  const transferScale = 10n ** 12n;
+  const usdc = value / transferScale;
+  return formatUsdc(usdc === 0n && value !== 0n ? (value < 0n ? -1n : 1n) : usdc, { suffix: true });
+}
+
+export function formatUnit(value: number, precision: number): string {
+  return value.toFixed(precision);
 }

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { formatAddress, formatPercent, formatUsdc } from "./format";
+import { formatAddress, formatGrid, formatPercent, formatUsdc, formatWad } from "./format";
 
 // USDC: 1_000_000n = $1.00
 describe("formatUsdc", () => {
@@ -31,9 +31,8 @@ describe("formatUsdc", () => {
     expect(formatUsdc(-1_000_000n)).toBe("-1.00");
   });
 
-  test("negative sub-cent shows < 0.01 without sign", () => {
-    // sub-cent negative — show absolute near-zero indicator
-    expect(formatUsdc(-1n)).toBe("< 0.01");
+  test("negative sub-cent preserves the negative direction", () => {
+    expect(formatUsdc(-1n)).toBe("> -0.01");
   });
 
   test("suffix option", () => {
@@ -79,4 +78,16 @@ describe("formatAddress", () => {
     const addr = "0x12" as `0x${string}`;
     expect(formatAddress(addr)).toBe("0x12");
   });
+});
+
+// Exact display boundaries added for the market and portfolio view models.
+test("market precision preserves negative sub-unit values", () => {
+  expect(formatGrid(-5n, 1)).toBe("-0.5");
+  expect(formatGrid(1234n, 2)).toBe("12.34");
+  expect(formatGrid(0n, 0)).toBe("0");
+});
+test("WAD display preserves nonzero amounts below a transfer unit", () => {
+  expect(formatWad(1n)).toBe("< 0.01 USDC");
+  expect(formatWad(-1n)).toBe("> -0.01 USDC");
+  expect(formatWad(10n ** 18n)).toBe("1.00 USDC");
 });

@@ -60,7 +60,7 @@ describe("binary quote", () => {
   });
 });
 
-describe("demo case: crowd has the side right but the shape wrong", () => {
+describe("crowd has the side right but the shape wrong", () => {
   const result = compareBets(SPEED);
 
   test("best binary is below the threshold with a thin edge", () => {

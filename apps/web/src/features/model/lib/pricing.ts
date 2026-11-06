@@ -59,9 +59,13 @@ export function bestBinary(input: PricingInput): BinaryQuote {
   return above.expectedReturnUsd >= below.expectedReturnUsd ? above : below;
 }
 
+/** Settlement convention: an outcome exactly on the threshold counts as below. */
+export function sideWins(x: number, threshold: number, side: BinarySide): boolean {
+  return side === "above" ? x > threshold : x <= threshold;
+}
+
 export function binaryPayoutAt(x: number, quote: BinaryQuote, threshold: number): number {
-  const wins = quote.side === "above" ? x > threshold : x <= threshold;
-  return wins ? quote.payoutIfRightUsd : 0;
+  return sideWins(x, threshold, quote.side) ? quote.payoutIfRightUsd : 0;
 }
 
 /** Distribution-market payout: the stake scaled by how much more likely the engine finds x. */

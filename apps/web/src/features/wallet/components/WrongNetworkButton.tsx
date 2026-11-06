@@ -11,6 +11,7 @@ export function WrongNetworkButton({ className }: { readonly className?: string 
   const { switchChain, isPending } = useSwitchChain();
   return (
     <Button
+      data-wallet-control
       variant="warning"
       className={className}
       disabled={isPending}

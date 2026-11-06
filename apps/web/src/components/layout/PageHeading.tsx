@@ -6,5 +6,5 @@ type PageHeadingProps = {
 
 /** The single `h1` of an app page, on the approved H1 step. */
 export function PageHeading({ children }: PageHeadingProps) {
-  return <h1 className="text-h1 font-semibold text-text">{children}</h1>;
+  return <h1 className="text-h1 text-text">{children}</h1>;
 }
