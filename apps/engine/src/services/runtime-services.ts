@@ -73,5 +73,14 @@ export function runtimeServices(options: {
     extractPdf,
     ...(model ? { suggestMarketKind: createMarketKindService(model) } : {}),
     ...(trading ? { ticks: trading.ticks } : {}),
+    ticksUnavailable: model
+      ? {
+          code: "vault_unavailable" as const,
+          message: "The Arc market adapters are not configured (ARC_TESTNET_RPC_URL).",
+        }
+      : {
+          code: "llm_unavailable" as const,
+          message: "The planner model is not configured (GOOGLE_GENERATIVE_AI_API_KEY).",
+        },
   };
 }

@@ -41,6 +41,11 @@ const envSchema = z.object({
   NEXT_PUBLIC_CHAIN_ID: z.coerce.number().int().positive().default(LOCAL_CHAIN_ID),
   PORT: z.coerce.number().int().min(1).max(65535).default(DEFAULT_PORT),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  ARC_TESTNET_RPC_URL: z.url().optional(),
+  ENGINE_ARKIV_PRIVATE_KEY: z.string().optional(),
+  ARKIV_RPC_URL: z.string().optional(),
+  ARKIV_WS_URL: z.string().optional(),
+  ARKIV_CHAIN_ID: z.string().optional(),
 });
 
 export function readEnvironment(input: Record<string, string | undefined> = process.env) {

@@ -23,7 +23,11 @@ export type CoreAdapters = {
   loadContext: (state: EngineState, signal: AbortSignal) => Promise<TickContext>;
   compile: (state: EngineState, signal: AbortSignal) => Promise<CompiledTrade[]>;
   publishProposal?: (state: EngineState, signal: AbortSignal) => Promise<ProposalRef | null>;
-  confirm?: (state: EngineState, signal: AbortSignal) => Promise<EngineUpdate>;
+  /** chargeUsdc is the verified on-chain charge; the runtime records it and strips it. */
+  confirm?: (
+    state: EngineState,
+    signal: AbortSignal,
+  ) => Promise<EngineUpdate & { chargeUsdc?: string }>;
 };
 
 function contextNode(adapters: CoreAdapters): EngineNode {

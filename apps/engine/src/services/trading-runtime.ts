@@ -55,10 +55,24 @@ export function createTradingRuntime(options: {
     killSwitch:
       (await database.killSwitch.findUnique({ where: { runId: state.runId } }))?.stopped ?? false,
   });
+  const confirm = adapters.confirm;
+  const settle = confirm
+    ? async (state: EngineState, signal: AbortSignal) => {
+        const { chargeUsdc, ...update } = await confirm(state, signal);
+        const id = reservationId(state);
+        const entry = (await spend.read(state.runId)).find((item) => item.tradeId === id);
+        if (entry?.status === "sent") await spend.transition(state.runId, entry, "confirmed");
+        await database.execution.updateMany({
+          where: { tradeId: id, runId: state.runId },
+          data: { status: "confirmed", chargeUsdc: chargeUsdc ?? null },
+        });
+        return update;
+      }
+    : undefined;
   const graph = createCoreGraph({
     model,
     checkpointer,
-    adapters: { ...adapters, loadContext },
+    adapters: { ...adapters, loadContext, ...(settle ? { confirm: settle } : {}) },
     effects: createEffectStore(database),
   });
   const ticks = createTickCoordinator({

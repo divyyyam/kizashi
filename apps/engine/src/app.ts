@@ -1,4 +1,8 @@
-import { emptyEndpointRequestSchema, healthResponseSchema } from "@kizashi/schemas/engine";
+import {
+  type EngineErrorCode,
+  emptyEndpointRequestSchema,
+  healthResponseSchema,
+} from "@kizashi/schemas/engine";
 import cors from "cors";
 import express from "express";
 import type { Logger } from "pino";
@@ -34,6 +38,7 @@ type AppOptions = {
   rules?: RulesRuns;
   control?: RunControl;
   ticks?: TickCoordinator;
+  ticksUnavailable?: { code: EngineErrorCode; message: string };
   events?: RunEvents;
   extractPdf?: Parameters<typeof parseRulesUpload>[0]["extractPdf"];
   suggestMarketKind?: MarketKindService;
@@ -70,7 +75,7 @@ export function createApp(options: AppOptions) {
   );
   app.use("/auth", authRouter(options.auth));
   app.use(requireAuth(options.tokens, options.chainId));
-  app.use("/runs", runControlRouter(options.control, options.ticks));
+  app.use("/runs", runControlRouter(options.control, options.ticks, options.ticksUnavailable));
   app.use("/runs", streamRouter(options.control, options.events));
   app.use(
     "/runs",

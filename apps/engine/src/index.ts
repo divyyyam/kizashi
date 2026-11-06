@@ -1,12 +1,24 @@
 import pino from "pino";
 import { readEnvironment } from "./env";
+import { arcAdaptersFromEnv } from "./services/arc/wire";
 import { createRuntime } from "./services/runtime";
 
-const logger = pino();
+const logger = pino({
+  redact: {
+    paths: [
+      "*.privateKey",
+      "*.signature",
+      "*.token",
+      "*.authorization",
+      "req.headers.authorization",
+    ],
+    censor: "[redacted]",
+  },
+});
 
 try {
   const settings = readEnvironment();
-  const runtime = await createRuntime(settings, logger);
+  const runtime = await createRuntime(settings, logger, arcAdaptersFromEnv(settings, logger));
   const server = runtime.app.listen(settings.PORT, () => {
     logger.info({ port: settings.PORT }, "Engine listening");
   });
