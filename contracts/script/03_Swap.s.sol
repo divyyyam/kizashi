@@ -12,7 +12,7 @@ import {DeployBase} from "./DeployBase.s.sol";
 /// @notice Plain v4 swaps on the KZT/USDC pool so the hook records TWAP observations.
 /// Env: SWAPS (default 12), SWAP_AMOUNT (exact-in base units of the input token, default 1e4).
 /// Run it inside the 5 minutes before a TWAP market closes.
-/// forge script script/03_Swap.s.sol --rpc-url arc_testnet --broadcast --slow
+/// Local anvil only, after liquidity is added. On Arc use script/swap-arc.sh (cast).
 contract Swap is DeployBase {
     function run() external {
         address usdc = readAddress("USDC");

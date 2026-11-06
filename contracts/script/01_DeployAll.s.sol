@@ -9,7 +9,6 @@ import {PoolModifyLiquidityTest} from "@uniswap/v4-core/src/test/PoolModifyLiqui
 import {PoolSwapTest} from "@uniswap/v4-core/src/test/PoolSwapTest.sol";
 import {Currency} from "@uniswap/v4-core/src/types/Currency.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
-import {ModifyLiquidityParams} from "@uniswap/v4-core/src/types/PoolOperation.sol";
 import {HookMiner} from "@uniswap/v4-periphery/test/shared/HookMiner.sol";
 import {MockERC20} from "solmate/src/test/utils/mocks/MockERC20.sol";
 import {KizashiPool} from "../src/core/KizashiPool.sol";
@@ -21,13 +20,13 @@ import {DeployBase} from "./DeployBase.s.sol";
 
 /// @notice Deploys the whole Kizashi system and a seeded KZT/USDC v4 price pool.
 /// Env: DEPLOYER_PRIVATE_KEY; optional POOL_MANAGER (else our own is deployed), RESOLVER_ROLE
-/// (default: deployer), USDC_ADDRESS, SEED_LIQUIDITY (default 5e12 ~ 5 USDC per side).
+/// (default: deployer), USDC_ADDRESS. Never calls USDC, so it runs under stock Foundry on Arc;
+/// liquidity, demo markets and swaps go through cast in script/deploy-arc.sh.
 /// forge script script/01_DeployAll.s.sol --rpc-url arc_testnet --broadcast
 contract DeployAll is DeployBase {
     address internal constant CREATE2_DEPLOYER = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
     int24 internal constant TICK_SPACING = 60;
     uint24 internal constant FEE = 3000;
-    int24 internal constant FULL_RANGE = 887_220; // max tick divisible by 60
 
     struct Deployed {
         IPoolManager manager;
@@ -62,7 +61,7 @@ contract DeployAll is DeployBase {
             address(new EngineBudgetVault()), usdc, IMarketRegistry(address(d.factory))
         );
         d.baseToken = new MockERC20("Kizashi Test Token", "KZT", 18);
-        d.priceKey = _seedPricePool(d, usdc, deployer);
+        d.priceKey = _initPricePool(d, usdc, deployer);
         vm.stopBroadcast();
 
         _write(d);
@@ -78,7 +77,7 @@ contract DeployAll is DeployBase {
     }
 
     /// @dev Price 1 KZT = 1 USDC. raw price = token1 base units per token0 base unit.
-    function _seedPricePool(Deployed memory d, address usdc, address deployer)
+    function _initPricePool(Deployed memory d, address usdc, address deployer)
         internal
         returns (PoolKey memory k)
     {
@@ -92,16 +91,9 @@ contract DeployAll is DeployBase {
         uint160 sqrtPrice = usdcIs0 ? uint160(1e6 * 2 ** 96) : uint160(uint256(2 ** 96) / 1e6);
         d.manager.initialize(k, sqrtPrice);
 
-        uint256 liquidity = vm.envOr("SEED_LIQUIDITY", uint256(5e12));
+        // Liquidity is added by deploy-arc.sh with cast: Arc's USDC calls a native blocklist
+        // precompile that Foundry's local script execution cannot run.
         d.baseToken.mint(deployer, 1_000_000e18);
-        MockERC20(address(d.baseToken)).approve(address(d.liquidityRouter), type(uint256).max);
-        MockERC20(address(d.baseToken)).approve(address(d.swapRouter), type(uint256).max);
-        MockERC20(usdc).approve(address(d.liquidityRouter), type(uint256).max);
-        MockERC20(usdc).approve(address(d.swapRouter), type(uint256).max);
-        d.liquidityRouter
-            .modifyLiquidity(
-                k, ModifyLiquidityParams(-FULL_RANGE, FULL_RANGE, int256(liquidity), bytes32(0)), ""
-            );
     }
 
     function _write(Deployed memory d) internal {

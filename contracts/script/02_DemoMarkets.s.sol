@@ -13,7 +13,8 @@ import {DeployBase} from "./DeployBase.s.sol";
 /// @notice Creates two labelled demo markets with real transactions: a manual expressive market
 /// and a TWAP-settled KZT price market. Env: DEPLOYER_PRIVATE_KEY; optional DEMO_SUBSIDY_USDC
 /// (default 2 USDC each), DEMO_CLOSE_SECONDS (default 2 hours).
-/// forge script script/02_DemoMarkets.s.sol --rpc-url arc_testnet --broadcast
+/// Local anvil with mock USDC only. On Arc use script/deploy-arc.sh (cast): Arc USDC calls a native
+/// precompile that Foundry cannot execute locally.
 contract DemoMarkets is DeployBase {
     function run() external returns (uint256 manualId, uint256 twapId) {
         KizashiMarketFactory factory = KizashiMarketFactory(readAddress("KizashiMarketFactory"));

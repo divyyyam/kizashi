@@ -4,6 +4,7 @@
 #   SKIP_DEMO=1 bash contracts/script/deploy-arc.sh # without demo markets
 # Reads the root .env: DEPLOYER_PRIVATE_KEY (required), ARC_TESTNET_RPC_URL, optional
 # RESOLVER_ROLE, POOL_MANAGER, SEED_LIQUIDITY, DEMO_SUBSIDY_USDC, DEMO_CLOSE_SECONDS.
+# forge script only deploys (no USDC calls); every USDC-moving step uses cast send.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -58,16 +59,53 @@ else
     echo "WARN: verification failed; contracts are deployed. Rerun the verify step later."
 fi
 
+# --- everything that moves USDC goes through cast: the Arc node executes it with its native
+# --- precompiles; Foundry's local script execution cannot (blocklist precompile 0x1800..01).
+j() { python3 -c "import json;print(json.load(open('deployments/5042002.json'))['$1']['address'])"; }
+send() { cast send --rpc-url "$RPC" --private-key "$DEPLOYER_PRIVATE_KEY" "$@" > /dev/null; }
+MAX=115792089237316195423570985008687907853269984665640564039457584007913129639935
+KZT=$(j KizashiTestToken); HOOK=$(j KizashiOracleHook); LIQ=$(j PoolModifyLiquidityTest)
+SWAP=$(j PoolSwapTest); FACTORY=$(j KizashiMarketFactory)
+if python3 -c "import sys;sys.exit(0 if int('$USDC',16) < int('$KZT',16) else 1)"; then
+  C0=$USDC; C1=$KZT; BASE0=false
+else
+  C0=$KZT; C1=$USDC; BASE0=true
+fi
+KEY="($C0,$C1,3000,60,$HOOK)"
+
+POOL_ID=$(cast keccak "$(cast abi-encode 'f((address,address,uint24,int24,address))' "$KEY")")
+LIVE=$(cast call "$HOOK" "liquidity(bytes32)(uint128)" "$POOL_ID" --rpc-url "$RPC" 2>/dev/null | awk '{print $1}' || echo 0)
+if [ "${LIVE:-0}" = "0" ]; then
+  step "4b/6 seed the KZT/USDC v4 pool (${SEED_LIQUIDITY:-5000000000000} liquidity units, ~5 USDC a side)"
+  send "$USDC" "approve(address,uint256)" "$LIQ" "$MAX"
+  send "$USDC" "approve(address,uint256)" "$SWAP" "$MAX"
+  send "$KZT" "approve(address,uint256)" "$LIQ" "$MAX"
+  send "$KZT" "approve(address,uint256)" "$SWAP" "$MAX"
+  send "$LIQ" "modifyLiquidity((address,address,uint24,int24,address),(int24,int24,int256,bytes32),bytes)" \
+    "$KEY" "(-887220,887220,${SEED_LIQUIDITY:-5000000000000},0x0000000000000000000000000000000000000000000000000000000000000000)" 0x
+  echo "seeded"
+else
+  echo "pool already has liquidity ($LIVE); skipping seed"
+fi
+
 if [ "${SKIP_DEMO:-0}" != "1" ]; then
-  step "5/6 demo markets"
-  forge script ${FORGE_EXTRA:-} script/02_DemoMarkets.s.sol --rpc-url arc_testnet --broadcast --slow
+  step "5/6 demo markets (cast)"
+  SUB=${DEMO_SUBSIDY_USDC:-2000000}
+  CLOSE=$(( $(date +%s) + ${DEMO_CLOSE_SECONDS:-7200} ))
+  ZERO=0x0000000000000000000000000000000000000000
+  SIG="createMarket(((uint256,int256,int256,address),uint256,uint64,uint8,uint8,bytes32,((address,address,uint24,int24,address),bool,uint8,uint8,uint8,uint32,uint16,uint128)))"
+  send "$USDC" "approve(address,uint256)" "$FACTORY" $((2 * SUB))
+  # Manual expressive market: 16 buckets of 2 km/h from 130 (bowler top speed).
+  send "$FACTORY" "$SIG" "((16,130,2,$USDC),$SUB,$CLOSE,1,1,$(cast keccak kizashi-demo-manual),(($ZERO,$ZERO,0,0,$ZERO),false,0,0,0,0,0,0))"
+  # TWAP market: KZT price 0.50..2.50 USDC in 8 buckets of 0.25, settled from the hook.
+  send "$FACTORY" "$SIG" "((8,50,25,$USDC),$SUB,$CLOSE,1,2,$(cast keccak kizashi-demo-twap),($KEY,$BASE0,18,6,2,300,10,1))"
+  echo "created; both close at $(date -d @$CLOSE '+%H:%M %Z' 2>/dev/null || echo $CLOSE)"
 else
   step "5/6 demo markets skipped"
 fi
 
 step "6/6 addresses (deployments/5042002.json)"
 python3 -c "import json;[print(f'{k:28} {v[\"address\"]}  block {v[\"block\"]}') for k,v in json.load(open('deployments/5042002.json')).items()]"
-FACTORY=$(python3 -c "import json;print(json.load(open('deployments/5042002.json'))['KizashiMarketFactory']['address'])")
 echo "markets created: $(cast call "$FACTORY" 'marketCount()(uint256)' --rpc-url "$RPC")"
 echo
 echo "Done. Commit contracts/deployments/5042002.json and push. Explorer: https://testnet.arcscan.app/address/$FACTORY"
