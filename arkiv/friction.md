@@ -30,6 +30,6 @@ SDK: `@arkiv-network/sdk` 1.0.1 on the Rabdi testnet (chain 7794095). What we hi
 
 - Viem-native clients: `createPublicClient` and `createWalletClient` dropped straight into our
   stack.
-- The typed `select().from(schema).where(...).orderBy(...)` builder, which caught a wrongly typed
-  filter at compile time.
+- The typed `select().from(schema).where(...).orderBy(...)` builder: filters and sort keys are
+  checked against the schema at compile time.
 - `watchEntityEvents` made live refetching trivial.

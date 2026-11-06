@@ -9,8 +9,8 @@ ending at close.
 - **Hooks are the right primitive for oracles.** `afterInitialize` plus `afterSwap` let us keep a
   per-pool observation ring buffer without touching the core, and the hook address flags make the
   permissions auditable at a glance.
-- **OpenZeppelin `uniswap-hooks` `BaseHook`** removed most of the boilerplate, and its permission
-  checks caught a flag mismatch early.
+- **OpenZeppelin `uniswap-hooks` `BaseHook`** removed most of the boilerplate and validates the
+  hook's permission flags against its address.
 - **`Deployers` in v4-core's test utils** gave us a full PoolManager, routers and currencies in a few
   lines, so the hook was tested against the real core from day one.
 - **`HookMiner`** made CREATE2 mining for the flag bits painless.
