@@ -1,0 +1,14 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`gaussianShape (market spec §3.2) deterministic across repeated calls and frozen expectations 1`] = `
+[
+  70647939809387192n,
+  307192204923019136n,
+  769417920215578624n,
+  1000000000000000000n,
+  674882073548653696n,
+  236261155197012224n,
+  42792969033829000n,
+  4191954871851843n,
+]
+`;
