@@ -20,7 +20,7 @@ import {DeployBase} from "./DeployBase.s.sol";
 
 /// @notice Deploys the whole Kizashi system and a seeded KZT/USDC v4 price pool.
 /// Env: DEPLOYER_PRIVATE_KEY; optional POOL_MANAGER (else our own is deployed), RESOLVER_ROLE
-/// (default: deployer), USDC_ADDRESS. Never calls USDC, so it runs under stock Foundry on Arc;
+/// (default: deployer), USDC_ADDRESS, VAULT_IMPLEMENTATION (Arc Studio-deployed vault; else new). Never calls USDC, so it runs under stock Foundry on Arc;
 /// liquidity, demo markets and swaps go through cast in script/deploy-arc.sh.
 /// forge script script/01_DeployAll.s.sol --rpc-url arc_testnet --broadcast
 contract DeployAll is DeployBase {
@@ -36,6 +36,7 @@ contract DeployAll is DeployBase {
         KizashiPool poolImplementation;
         KizashiMarketFactory factory;
         EngineVaultFactory vaults;
+        address vaultImplementation;
         MockERC20 baseToken;
         PoolKey priceKey;
     }
@@ -57,9 +58,12 @@ contract DeployAll is DeployBase {
         d.poolImplementation = new KizashiPool();
         d.factory =
             new KizashiMarketFactory(address(d.poolImplementation), usdc, resolverRole, d.hook);
-        d.vaults = new EngineVaultFactory(
-            address(new EngineBudgetVault()), usdc, IMarketRegistry(address(d.factory))
-        );
+        // Arc Studio deploys the vault implementation; pass it in so the factory clones that one.
+        address vaultImpl = vm.envOr("VAULT_IMPLEMENTATION", address(0));
+        if (vaultImpl == address(0)) vaultImpl = address(new EngineBudgetVault());
+        require(vaultImpl.code.length > 0, "VAULT_IMPLEMENTATION has no code");
+        d.vaultImplementation = vaultImpl;
+        d.vaults = new EngineVaultFactory(vaultImpl, usdc, IMarketRegistry(address(d.factory)));
         d.baseToken = new MockERC20("Kizashi Test Token", "KZT", 18);
         d.priceKey = _initPricePool(d, usdc, deployer);
         vm.stopBroadcast();
@@ -106,6 +110,7 @@ contract DeployAll is DeployBase {
         record(o, "KizashiMarketFactory", address(d.factory));
         record(o, "KizashiResolver", address(d.factory.resolver()));
         record(o, "EngineVaultFactory", address(d.vaults));
+        record(o, "EngineBudgetVaultImplementation", d.vaultImplementation);
         record(o, "KizashiTestToken", address(d.baseToken));
         string memory json = record(o, "USDC", usdcAddress());
         vm.writeJson(json, deploymentPath(""));
