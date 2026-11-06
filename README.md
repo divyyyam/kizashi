@@ -225,7 +225,7 @@ ETH YES [`0x1e61…`](https://explorer.testnet.arc.io/tx/0x1e619878ae4c817cd7e44
 
 Prompt "Bet 0.2 USDC that total Boxing Day goals land near 24, width 4" on market 9: the
 planner proposed a curve trade, the user wallet approved
-([`0x8faf…`](https://explorer.testnet.arc.io/tx/0x8fafb154f464cc733dbed0959bb4ffff01635469f1feffed9640886bd512bf644)) and traded
+([`0x8faf…`](https://explorer.testnet.arc.io/tx/0x8fafb154f464cc733dbed0959bb4ffff01635469f1feffed9640886bd512bf64)) and traded
 ([`0x236b…`](https://explorer.testnet.arc.io/tx/0x236bab371a97983cb7655b2c517a672caa5560417aca6809c0f69c20143980d7)).
 
 ### Market 1 lifecycle
