@@ -90,7 +90,7 @@ const SEEDS: Seed[] = [
     },
   },
   {
-    question: "Where will KZT/USDC settle at Saturday's 05:00 IST close?",
+    question: "Where will KZT/USDC settle at the 00:50 IST close on 7 November?",
     description:
       "Settled automatically by Kizashi's Uniswap v4 TWAP oracle on the KZT/USDC pool on Arc testnet.",
     category: "crypto",
@@ -100,7 +100,7 @@ const SEEDS: Seed[] = [
       [255, 140, 200],
     ],
     outcomes: { kind: "curve", unit: "USDC", low: "0.50", high: "2.50", buckets: 8, precision: 2 },
-    closeIso: "2026-11-06T23:30:00Z",
+    closeIso: "2026-11-06T19:20:00Z",
     resolution: {
       source: "uniswap-twap",
       sourceName: "Uniswap v4 KZT/USDC TWAP (KizashiOracleHook)",
