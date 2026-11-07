@@ -1,0 +1,47 @@
+# kizashi-indexer: the Arc -> Arkiv sync worker (apps/indexer). No HTTP port.
+# Build context is the repo root:
+#   docker build -f deploy/Dockerfile.indexer -t kizashi-indexer .
+FROM oven/bun:1.4.2-slim AS build
+WORKDIR /app
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+# Every workspace manifest, so the frozen lockfile matches.
+COPY package.json bun.lock ./
+COPY apps/engine/package.json apps/engine/
+COPY apps/indexer/package.json apps/indexer/
+COPY apps/web/package.json apps/web/
+COPY packages/arkiv/package.json packages/arkiv/
+COPY packages/config/package.json packages/config/
+COPY packages/contracts/package.json packages/contracts/
+COPY packages/core/package.json packages/core/
+COPY packages/db/package.json packages/db/
+COPY packages/schemas/package.json packages/schemas/
+COPY packages/swarm/package.json packages/swarm/
+RUN bun install --frozen-lockfile --ignore-scripts --filter @kizashi/indexer
+
+COPY apps/indexer/src apps/indexer/src
+COPY apps/indexer/tsconfig.json apps/indexer/
+COPY packages/arkiv packages/arkiv
+COPY packages/config packages/config
+COPY packages/contracts packages/contracts
+COPY packages/core packages/core
+# Filtered install doesn't link @kizashi/config, but every tsconfig extends it (Prisma and Bun read them).
+RUN mkdir -p node_modules/@kizashi && ln -sfn ../../packages/config node_modules/@kizashi/config
+
+FROM oven/bun:1.4.2-slim AS runtime
+WORKDIR /app
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+ENV NODE_ENV=production
+COPY --from=build --chown=bun:bun /app /app
+# Cursor lives here; mount a named volume on it so restarts resume instead of re-syncing.
+RUN mkdir -p /app/apps/indexer/.state && chown -R bun:bun /app/apps/indexer/.state
+USER bun
+WORKDIR /app/apps/indexer
+# The cursor file is rewritten after every poll that advances; stale for 5 min = stuck.
+HEALTHCHECK --interval=60s --timeout=5s --start-period=120s --retries=3 \
+  CMD bun -e "const s=require('fs').statSync('/app/apps/indexer/.state/cursor.json');process.exit(Date.now()-s.mtimeMs<300000?0:1)" || exit 1
+CMD ["bun", "src/index.ts"]
