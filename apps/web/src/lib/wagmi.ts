@@ -8,6 +8,7 @@ import {
   http,
 } from "wagmi";
 import { env } from "@/lib/env";
+import { createRpcRateGuard } from "@/lib/rpc-rate-guard";
 
 const chain = chainById(env.NEXT_PUBLIC_CHAIN_ID);
 if (chain === undefined) {
@@ -27,8 +28,12 @@ export function createWagmiConfig(connectors: CreateConnectorFn[] = []): Config 
     ssr: true,
     storage: createStorage({ storage: cookieStorage }),
     transports: {
-      [arcTestnet.id]: http(env.NEXT_PUBLIC_ARC_RPC_URL),
-      [anvil.id]: http(),
+      [arcTestnet.id]: http(env.NEXT_PUBLIC_ARC_RPC_URL, {
+        timeout: 10_000,
+        retryCount: 0,
+        ...createRpcRateGuard(),
+      }),
+      [anvil.id]: http(undefined, { timeout: 10_000, retryCount: 0, ...createRpcRateGuard() }),
     },
   });
 }

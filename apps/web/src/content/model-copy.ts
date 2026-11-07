@@ -4,6 +4,7 @@ export const modelCopy = {
     title: "Model",
     context: "Run context",
     settings: "Run settings",
+    closeSettings: "Close run settings",
     analysis: "Analysis",
     markets: "Markets",
     collateral: "Collateral",

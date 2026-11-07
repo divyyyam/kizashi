@@ -69,8 +69,6 @@ export function InkField() {
       </div>
       <canvas key={paused ? "paused" : "running"} ref={canvas} className="ink-canvas" />
       <div className="field-caption" data-intro>
-        <span className="field-key" />
-        <span className="field-name">{copy.story.field}</span>
         {(available || paused) && (
           <button
             type="button"

@@ -1,0 +1,13 @@
+.loading-region {
+  /* CSS keeps the delay independent of hydration and never delays the actual response. */
+  animation: loading-region-reveal 0s 200ms both;
+}
+
+@keyframes loading-region-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

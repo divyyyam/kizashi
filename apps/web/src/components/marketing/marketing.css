@@ -175,12 +175,6 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
-.field-key {
-  display: block;
-  width: 1.25rem;
-  height: 1px;
-  background: var(--color-curve-user);
-}
 .motion-control {
   display: grid;
   place-items: center;

@@ -1,8 +1,7 @@
 "use client";
 
 import { lightTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { type ReactNode, useState } from "react";
+import type { ReactNode } from "react";
 import { type State, WagmiProvider } from "wagmi";
 import { WalletPickerProvider } from "@/features/wallet";
 import { createWagmiConfig } from "@/lib/wagmi";
@@ -33,14 +32,11 @@ type ProvidersProps = {
 };
 
 export function Providers({ initialState, children }: ProvidersProps) {
-  const [queryClient] = useState(() => new QueryClient());
   return (
     <WagmiProvider config={wagmiConfig} initialState={initialState}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={walletTheme} modalSize="compact">
-          <WalletPickerProvider>{children}</WalletPickerProvider>
-        </RainbowKitProvider>
-      </QueryClientProvider>
+      <RainbowKitProvider theme={walletTheme} modalSize="compact">
+        <WalletPickerProvider>{children}</WalletPickerProvider>
+      </RainbowKitProvider>
     </WagmiProvider>
   );
 }

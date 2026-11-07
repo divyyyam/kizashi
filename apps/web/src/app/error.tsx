@@ -1,24 +1,32 @@
 "use client";
 
+import { useTransition } from "react";
+import { MarketsLink } from "@/components/feedback/MarketsLink";
+import { StatePanel } from "@/components/feedback/StatePanel";
 import { Container } from "@/components/layout/Container";
-import { Button } from "@/components/ui/button";
 import { copy } from "@/content/copy";
 
 type ErrorPageProps = {
-  readonly error: Error & { digest?: string };
-  readonly reset: () => void;
+  readonly error: unknown;
+  readonly retry: () => void;
 };
 
 /** Shared route error boundary: a human sentence and a retry that re-renders the segment. */
-export default function ErrorPage({ reset }: ErrorPageProps) {
+export default function ErrorPage({ retry }: ErrorPageProps) {
+  const [pending, startTransition] = useTransition();
   return (
     <Container className="flex flex-col items-start gap-4 py-12">
-      <p role="alert" className="text-body text-text-muted">
-        {copy.errors.generic}
-      </p>
-      <Button onClick={reset} variant="secondary" size="md">
-        {copy.errors.retry}
-      </Button>
+      <h1 className="font-display text-h1 text-text">{copy.feedback.pageError}</h1>
+      <div className="w-full">
+        <StatePanel
+          kind="error"
+          message={copy.feedback.pageHelp}
+          retry={() => startTransition(retry)}
+          busy={pending}
+        >
+          <MarketsLink />
+        </StatePanel>
+      </div>
     </Container>
   );
 }

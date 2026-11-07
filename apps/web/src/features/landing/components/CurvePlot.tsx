@@ -32,7 +32,7 @@ export function CurvePlot({ curve, mean, onMean }: CurvePlotProps) {
   const meanX = ((mean - HERO_LOW) / (HERO_HIGH - HERO_LOW)) * FRAME.width;
 
   const fromPointer = (event: PointerEvent<HTMLDivElement>) => {
-    const box = ref.current?.getBoundingClientRect();
+    const box = ref.current?.querySelector("svg")?.getBoundingClientRect();
     if (box === undefined || box.width === 0) return;
     const ratio = (event.clientX - box.left) / box.width;
     onMean(clampMean(HERO_LOW + ratio * (HERO_HIGH - HERO_LOW)));

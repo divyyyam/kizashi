@@ -94,7 +94,6 @@
   --spring-stiffness: 430;
   --spring-damping: 24;
   --spring-mass: 0.65;
-  --grain-opacity: 0.015;
   --background: var(--color-bg);
   --foreground: var(--color-text);
   --card: var(--color-surface);
@@ -279,23 +278,38 @@ html[data-theme="light"] {
   }
 }
 
-/* Strokes and chart interactions enhance the already visible server-rendered page. */
-body::after {
-  content: "";
-  position: fixed;
-  inset: -8px;
-  z-index: 80;
-  pointer-events: none;
-  background: url("/grain.svg") repeat;
-  opacity: var(--grain-opacity);
-}
-@media (prefers-reduced-motion: no-preference) and (pointer: fine) {
-  body::after {
-    animation: grain-drift 1.6s steps(2, end) infinite;
+@layer base {
+  input[type="range"] {
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
   }
-}
-@keyframes grain-drift {
-  50% {
-    transform: translate3d(4px, -5px, 0);
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 3px;
+    border-radius: var(--radius-full);
+    background: var(--color-border-strong);
+  }
+  input[type="range"]::-moz-range-track {
+    height: 3px;
+    border-radius: var(--radius-full);
+    background: var(--color-border-strong);
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    margin-top: -6.5px;
+    border: 3px solid var(--color-surface);
+    border-radius: var(--radius-full);
+    outline: 1px solid var(--color-signal);
+    background: var(--color-signal);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border: 3px solid var(--color-surface);
+    border-radius: var(--radius-full);
+    outline: 1px solid var(--color-signal);
+    background: var(--color-signal);
   }
 }

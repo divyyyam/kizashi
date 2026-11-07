@@ -3,6 +3,7 @@ import { type ReactNode, ViewTransition } from "react";
 import { copy } from "@/content/copy";
 import { MotionFlag } from "@/lib/motion/MotionFlag";
 import { fontClasses } from "@/styles/fonts";
+import { QueryProvider } from "./query-provider";
 import "@/styles/globals.css";
 import "@/components/motion/motion.css";
 
@@ -19,7 +20,9 @@ export default function RootLayout({ children }: { readonly children: ReactNode 
         <MotionFlag />
       </head>
       <body>
-        <ViewTransition default="none">{children}</ViewTransition>
+        <QueryProvider>
+          <ViewTransition default="none">{children}</ViewTransition>
+        </QueryProvider>
       </body>
     </html>
   );
