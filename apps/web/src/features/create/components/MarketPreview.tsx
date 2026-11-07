@@ -2,17 +2,12 @@
 
 import { bFromSubsidy, lossBound, toWad } from "@kizashi/core";
 import { parseUnits } from "viem";
+import { copy } from "@/content/copy";
+import { formatWad } from "@/lib/format";
 import type { PreparedImage } from "../lib/image";
 import { type CreateFormValues, gridOf, splitTags } from "../types";
-
-const WAD = 10n ** 18n;
-
-function usd(wad: bigint): string {
-  return (Number((wad * 100n) / WAD) / 100).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
+import { PreviewFacts } from "./PreviewFacts";
+import { PreviewOutcomes } from "./PreviewOutcomes";
 
 /** Live card showing how the market will look and what the creator risks. */
 export function MarketPreview({
@@ -29,7 +24,7 @@ export function MarketPreview({
     if (grid && /^\d+(\.\d{1,6})?$/.test(values.subsidy) && Number(values.subsidy) >= 1) {
       const b = bFromSubsidy(toWad(parseUnits(values.subsidy, 6)), Number(grid.n));
       risk = {
-        maxLoss: usd(lossBound(b, Number(grid.n))),
+        maxLoss: formatWad(lossBound(b, Number(grid.n))),
         start: (100 / Number(grid.n)).toFixed(1),
       };
     }
@@ -39,49 +34,25 @@ export function MarketPreview({
   const close = Date.parse(values.closesAt);
   const tags = splitTags(values.tags);
   return (
-    <aside className="grid content-start gap-4 rounded-lg border border-border bg-surface p-5 text-small">
-      <p className="text-text-faint">Preview</p>
+    <aside className="grid min-w-0 content-start gap-5 rounded-xl border border-border bg-surface p-5 text-small md:p-6">
+      <p className="text-text-faint">{copy.create.card}</p>
       <div className="flex gap-4">
         <div className="size-16 shrink-0 overflow-hidden rounded-md border border-border bg-bg">
           {/* biome-ignore lint/performance/noImgElement: local blob preview */}
           {image ? <img src={image.url} alt="" className="size-full object-cover" /> : null}
         </div>
-        <div className="grid gap-1">
+        <div className="grid min-w-0 gap-1 break-words">
           <p className="text-text-faint capitalize">{values.category}</p>
-          <p className="text-body text-text">{values.question || "Your question appears here"}</p>
+          <p className="text-body text-text">{values.question || copy.create.unnamed}</p>
         </div>
       </div>
-      {values.kind === "binary" ? (
-        <div className="grid grid-cols-2 gap-2">
-          {[values.yesLabel || "Yes", values.noLabel || "No"].map((label) => (
-            <div
-              key={label}
-              className="flex justify-between rounded-md border border-border px-3 py-2"
-            >
-              <span>{label}</span>
-              <span className="tabular text-text-muted">50%</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-text-muted">
-          {n
-            ? `${n} ranges from ${values.low} to ${values.high} ${values.unit}, ${risk?.start ?? "—"}% each to start`
-            : "Set a range to see the buckets"}
-        </p>
-      )}
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border pt-4">
-        <dt className="text-text-faint">Closes</dt>
-        <dd className="tabular">
-          {Number.isFinite(close) ? new Date(close).toLocaleString() : "—"}
-        </dd>
-        <dt className="text-text-faint">Resolution</dt>
-        <dd>{values.source === "manual" ? "Resolver + 30 min disputes" : "Uniswap v4 TWAP"}</dd>
-        <dt className="text-text-faint">Liquidity</dt>
-        <dd className="tabular">{values.subsidy || "—"} USDC</dd>
-        <dt className="text-text-faint">Your max loss</dt>
-        <dd className="tabular">{risk ? `${risk.maxLoss} USDC` : "—"}</dd>
-      </dl>
+      <PreviewOutcomes values={values} count={n} probability={risk?.start} />
+      <PreviewFacts
+        close={close}
+        source={values.source}
+        subsidy={values.subsidy}
+        maxLoss={risk?.maxLoss}
+      />
       {tags.length ? (
         <ul className="flex flex-wrap gap-2">
           {tags.map((t) => (

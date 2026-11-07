@@ -5,7 +5,7 @@ import { CreateMarketForm } from "@/features/create";
 
 export default function CreateMarketPage() {
   return (
-    <Container className="flex flex-col gap-8 py-8 md:py-10">
+    <Container className="flex max-w-wide flex-col gap-6 py-6 md:py-8">
       <PageHeader title={copy.create.title} />
       <CreateMarketForm />
     </Container>
