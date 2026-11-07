@@ -1,30 +1,13 @@
 "use client";
-import { Layers3, SearchX } from "lucide-react";
+import Link from "next/link";
+import { StatePanel } from "@/components/feedback/StatePanel";
+import { Button } from "@/components/ui/button";
 import { copy } from "@/content/copy";
 import type { DataState } from "@/lib/data-state";
 import type { MarketSummary } from "../types";
+import { MarketsSkeleton } from "./MarketsSkeleton";
 export function MarketListState({ result }: { result: DataState<readonly MarketSummary[]> }) {
-  if (result.status === "loading")
-    return (
-      <div
-        role="status"
-        aria-label={copy.markets.loading}
-        className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
-      >
-        {["first", "second", "third"].map((slot) => (
-          <div
-            key={slot}
-            className="flex flex-col gap-6 rounded-md border bg-surface p-6"
-            aria-hidden="true"
-          >
-            <div className="h-12 bg-surface-raised" />
-            <div className="h-10 bg-surface-raised" />
-            <div className="h-12 bg-surface-raised" />
-            <div className="h-12 bg-surface-raised" />
-          </div>
-        ))}
-      </div>
-    );
+  if (result.status === "loading") return <MarketsSkeleton />;
   const message =
     result.status === "unavailable"
       ? result.reason
@@ -34,11 +17,25 @@ export function MarketListState({ result }: { result: DataState<readonly MarketS
           ? copy.markets.filteredEmpty
           : copy.markets.empty;
   return (
-    <div role={result.status === "error" ? "alert" : "status"} className="venue-state">
-      <div className="venue-state-icon" aria-hidden>
-        {result.status === "ready" ? <SearchX /> : <Layers3 />}
-      </div>
-      <p>{message}</p>
-    </div>
+    <StatePanel
+      kind={
+        result.status === "error"
+          ? "error"
+          : result.status === "unavailable"
+            ? "unavailable"
+            : "empty"
+      }
+      title={result.status === "empty" ? copy.feedback.marketsEmpty : undefined}
+      message={message}
+      retry={result.retry}
+      retryAt={result.retryAt}
+      busy={result.refreshing}
+    >
+      {result.status === "empty" ? (
+        <Button asChild>
+          <Link href="/markets/new">{copy.markets.create}</Link>
+        </Button>
+      ) : null}
+    </StatePanel>
   );
 }

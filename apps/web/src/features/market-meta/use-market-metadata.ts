@@ -1,24 +1,13 @@
 "use client";
 
-import type { MarketMetadata } from "@kizashi/schemas/market";
 import { useQuery } from "@tanstack/react-query";
+import { copy } from "@/content/copy";
 import type { DataState } from "@/lib/data-state";
+import { queryResult } from "@/lib/query-result";
+import { RequestFailure, requestJson } from "@/lib/request";
+import { type MarketMetaView, metadataResponseSchema } from "./metadata-response";
 
-export type MarketMetaView = {
-  metadata: MarketMetadata;
-  metadataCid: string;
-  metadataUrl: string;
-  imageUrl: string | null;
-  rulesRef: `0x${string}`;
-  listing: { entityKey: string; url: string };
-  verified: true;
-};
-
-type Body =
-  | { status: "ready"; data: MarketMetaView }
-  | { status: "empty"; reason?: string }
-  | { status: "unavailable"; reason: string }
-  | { status: "error"; message: string };
+export type { MarketMetaView } from "./metadata-response";
 
 /** Market metadata from /api/markets/:id/metadata (Arkiv → IPFS → hash checked against Arc). */
 export function useMarketMetadata(marketId: string | undefined): DataState<MarketMetaView> {
@@ -26,16 +15,20 @@ export function useMarketMetadata(marketId: string | undefined): DataState<Marke
     queryKey: ["market-metadata", marketId],
     enabled: Boolean(marketId),
     staleTime: 60_000,
-    queryFn: async (): Promise<Body> => {
-      const res = await fetch(`/api/markets/${encodeURIComponent(marketId ?? "")}/metadata`);
-      return (await res.json()) as Body;
+    queryFn: async ({ signal }) => {
+      const body = await requestJson({
+        url: `/api/markets/${encodeURIComponent(marketId ?? "")}/metadata`,
+        schema: metadataResponseSchema,
+        signal,
+      });
+      if (body.status === "error") throw new RequestFailure("service");
+      return body;
     },
   });
-  if (!marketId || query.isPending) return { status: "loading" };
-  if (query.isError) return { status: "error", message: "Market details could not be loaded." };
-  const body = query.data;
-  if (body.status === "ready") return { status: "ready", data: body.data };
-  if (body.status === "empty") return { status: "empty" };
-  if (body.status === "error") return { status: "error", message: body.message };
-  return { status: "unavailable", reason: body.reason };
+  if (!marketId) return { status: "empty" };
+  const result = queryResult(query, copy.feedback.metadata.error);
+  if (result.status !== "ready") return result;
+  if (result.data.status === "ready") return { ...result, data: result.data.data };
+  if (result.data.status === "empty") return { ...result, status: "empty" };
+  return { ...result, status: "unavailable", reason: copy.feedback.metadata.unavailable };
 }

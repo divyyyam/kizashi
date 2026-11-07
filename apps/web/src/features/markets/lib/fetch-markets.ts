@@ -1,155 +1,103 @@
 import { createArkivReader, type MarketListing, openMarkets } from "@kizashi/arkiv";
-import {
-  DEPLOYMENT_5042002,
-  factoryAddress,
-  kizashiMarketFactoryAbi,
-  kizashiPoolAbi,
-} from "@kizashi/contracts";
-import type { Address, PublicClient } from "viem";
-import { getAddress, isAddress, zeroAddress } from "viem";
-import type { MarketKind, MarketStatus, MarketSummary } from "../types";
+import { factoryAddress, kizashiMarketFactoryAbi } from "@kizashi/contracts";
+import { type Address, getAddress, isAddress, type PublicClient, zeroAddress } from "viem";
+import { marketSummary } from "@/lib/market-summary";
+import { readMarketPool } from "@/lib/read-market-pool";
+import { boundedRead } from "@/lib/request";
+import type { MarketSummary } from "../types";
 
-export type RawPoolState = {
-  n: number;
-  lo: bigint;
-  w: bigint;
-  state: number;
-  closeTimeSec: number;
-  bWad: bigint;
-  pricesWad: readonly bigint[];
-};
+const MARKET_READ_CONCURRENCY = 2;
+const LISTING_TIMEOUT_MS = 5_000;
+type ReadOptions = { arkivWriter?: string | undefined; signal?: AbortSignal | undefined };
 
-async function readPool(client: PublicClient, pool: Address): Promise<RawPoolState | null> {
+async function fetchListings(input: ReadOptions & { chainId: number }): Promise<MarketListing[]> {
+  if (!input.arkivWriter || !isAddress(input.arkivWriter)) return [];
+  const owner = getAddress(input.arkivWriter);
   try {
-    const [cfg, state, closeTime, b, prices] = await Promise.all([
-      client.readContract({ address: pool, abi: kizashiPoolAbi, functionName: "config" }),
-      client.readContract({ address: pool, abi: kizashiPoolAbi, functionName: "state" }),
-      client.readContract({ address: pool, abi: kizashiPoolAbi, functionName: "closeTime" }),
-      client.readContract({ address: pool, abi: kizashiPoolAbi, functionName: "b" }),
-      client.readContract({ address: pool, abi: kizashiPoolAbi, functionName: "prices" }),
-    ]);
-    if (state === 0) return null;
-    return {
-      n: Number(cfg.n),
-      lo: cfg.lo,
-      w: cfg.w,
-      state,
-      closeTimeSec: Number(closeTime),
-      bWad: b,
-      pricesWad: prices,
-    };
+    const reader = createArkivReader({ rpcUrl: "/api/arkiv" });
+    const page = await boundedRead(
+      () => openMarkets(reader, { owner, arcChainId: input.chainId }),
+      { signal: input.signal, timeoutMs: LISTING_TIMEOUT_MS },
+    );
+    return page.items;
   } catch {
-    return null;
+    // Descriptions are optional. Verified chain state remains usable without Arkiv.
+    input.signal?.throwIfAborted();
+    return [];
   }
 }
 
-async function fetchArkivMap(
+async function readVerifiedMarket(
   client: PublicClient,
-  factory: Address,
-  chainId: number,
-  writer: string,
-): Promise<Map<string, MarketListing>> {
-  const map = new Map<string, MarketListing>();
-  if (!isAddress(writer)) return map;
-  try {
-    const reader = createArkivReader({ rpcUrl: "/api/arkiv" });
-    const page = await openMarkets(reader, {
-      owner: getAddress(writer),
-      arcChainId: chainId,
-    });
-    for (const item of page.items) {
-      try {
-        const pool = await client.readContract({
-          address: factory,
-          abi: kizashiMarketFactoryAbi,
-          functionName: "poolOf",
-          args: [BigInt(item.marketId)],
-        });
-        if (pool.toLowerCase() === item.arcAddress.toLowerCase()) {
-          map.set(item.marketId, item);
-        }
-      } catch {
-        // Drop items that fail cross-check
-      }
-    }
-  } catch {
-    // Arkiv reader unavailable, fall back to chain data
+  input: { factory: Address; id: bigint; signal: AbortSignal | undefined },
+) {
+  const { factory, id, signal } = input;
+  signal?.throwIfAborted();
+  const pool = await client.readContract({
+    address: factory,
+    abi: kizashiMarketFactoryAbi,
+    functionName: "poolOf",
+    args: [id],
+  });
+  if (pool === zeroAddress) return undefined;
+  signal?.throwIfAborted();
+  const reverseId = await client.readContract({
+    address: factory,
+    abi: kizashiMarketFactoryAbi,
+    functionName: "marketOf",
+    args: [pool],
+  });
+  if (reverseId !== id) return undefined;
+  signal?.throwIfAborted();
+  const raw = await readMarketPool(client, pool);
+  return raw ? { marketId: String(id), pool, raw } : undefined;
+}
+
+async function readMarkets(
+  client: PublicClient,
+  input: { factory: Address; count: bigint; signal: AbortSignal | undefined },
+) {
+  const markets: NonNullable<Awaited<ReturnType<typeof readVerifiedMarket>>>[] = [];
+  for (let start = 1n; start <= input.count; start += BigInt(MARKET_READ_CONCURRENCY)) {
+    input.signal?.throwIfAborted();
+    const ids = Array.from(
+      { length: MARKET_READ_CONCURRENCY },
+      (_, offset) => start + BigInt(offset),
+    ).filter((id) => id <= input.count);
+    const batch = await Promise.all(ids.map((id) => readVerifiedMarket(client, { ...input, id })));
+    for (const market of batch) if (market) markets.push(market);
   }
-  return map;
+  return markets;
 }
 
 export async function fetchMarkets(
   client: PublicClient,
   chainId: number,
-  arkivWriter?: string,
+  options: ReadOptions = {},
 ): Promise<MarketSummary[] | null> {
   const factory = factoryAddress(chainId);
   if (!factory) return null;
-
+  options.signal?.throwIfAborted();
   const count = await client.readContract({
     address: factory,
     abi: kizashiMarketFactoryAbi,
     functionName: "marketCount",
   });
   if (count === 0n) return [];
-
-  const arkivMap = arkivWriter
-    ? await fetchArkivMap(client, factory, chainId, arkivWriter)
-    : new Map<string, MarketListing>();
-
-  const results: MarketSummary[] = [];
-  for (let id = 1; id <= Number(count); id++) {
-    const marketId = String(id);
-    const pool = await client.readContract({
-      address: factory,
-      abi: kizashiMarketFactoryAbi,
-      functionName: "poolOf",
-      args: [BigInt(id)],
-    });
-    if (!pool || pool === zeroAddress) continue;
-
-    const reverseId = await client.readContract({
-      address: factory,
-      abi: kizashiMarketFactoryAbi,
-      functionName: "marketOf",
-      args: [pool],
-    });
-    if (reverseId !== BigInt(id)) continue;
-
-    const raw = await readPool(client, pool);
-    if (!raw) continue;
-
-    const arkiv = arkivMap.get(marketId);
-    const deployed = DEPLOYMENT_5042002.markets[marketId];
-    const kind: MarketKind = arkiv
-      ? arkiv.kind === "curve"
-        ? "expressive"
-        : "binary"
-      : deployed
-        ? deployed.kind === "curve"
-          ? "expressive"
-          : "binary"
-        : raw.n === 2
-          ? "binary"
-          : "expressive";
-
-    const status: MarketStatus = raw.state === 1 ? "open" : raw.state === 2 ? "closed" : "resolved";
-
-    results.push({
+  const [markets, listings] = await Promise.all([
+    readMarkets(client, { factory, count, signal: options.signal }),
+    fetchListings({ ...options, chainId }),
+  ]);
+  options.signal?.throwIfAborted();
+  const listingById = new Map(listings.map((listing) => [listing.marketId, listing]));
+  return markets.map(({ marketId, pool, raw }) => {
+    const listing = listingById.get(marketId);
+    return marketSummary({
       chainId,
       marketId,
       poolAddress: pool,
-      question: arkiv?.payload.title ?? `Market #${marketId}`,
-      unit: arkiv?.payload.grid.unit ?? "",
-      precision: arkiv?.payload.grid.gridDecimals ?? 0,
-      kind,
-      grid: { n: raw.n, lo: raw.lo, w: raw.w },
-      bWad: raw.bWad,
-      pricesWad: raw.pricesWad,
-      closeTimeSec: raw.closeTimeSec,
-      status,
+      raw,
+      listing: listing?.arcAddress.toLowerCase() === pool.toLowerCase() ? listing : undefined,
     });
-  }
-
-  return results;
+  });
 }

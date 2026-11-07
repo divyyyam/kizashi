@@ -2,6 +2,10 @@
 
 import { parseAsStringLiteral, useQueryStates } from "nuqs";
 import { useEffect, useState } from "react";
+import { RefreshNotice } from "@/components/feedback/RefreshNotice";
+import { StatePanel } from "@/components/feedback/StatePanel";
+import { Button } from "@/components/ui/button";
+import { copy } from "@/content/copy";
 import type { DataState } from "@/lib/data-state";
 import type { MarketSummary } from "../types";
 import { MarketCard } from "./MarketCard";
@@ -34,9 +38,12 @@ export function MarketList({ result }: { result: DataState<readonly MarketSummar
       : [];
   return (
     <div className="flex flex-col gap-8">
-      <MarketFilters query={query} setQuery={setQuery} />
+      <div className="rounded-xl border border-border bg-surface p-4 md:p-5">
+        <MarketFilters query={query} setQuery={setQuery} />
+      </div>
+      <RefreshNotice {...result} />
       {result.status === "ready" && markets.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
           {markets.map((market) => (
             <MarketCard
               key={`${market.chainId}:${market.marketId}`}
@@ -45,6 +52,20 @@ export function MarketList({ result }: { result: DataState<readonly MarketSummar
             />
           ))}
         </div>
+      ) : result.status === "ready" ? (
+        <StatePanel
+          kind="empty"
+          title={copy.feedback.filteredEmpty}
+          message={copy.markets.filteredEmpty}
+        >
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => void setQuery({ kind: "all", status: "all" })}
+          >
+            {copy.feedback.resetFilters}
+          </Button>
+        </StatePanel>
       ) : (
         <MarketListState result={result} />
       )}

@@ -1,52 +1,50 @@
 import { argMax } from "@kizashi/core";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ChartNoAxesColumn } from "lucide-react";
 import Link from "next/link";
 import { MarketTrace } from "@/components/market/MarketTrace";
 import { copy } from "@/content/copy";
 import { MarketCardTitle } from "@/features/market-meta";
-import { formatWad } from "@/lib/format";
 import { bucketLabel } from "../lib/bucket-label";
 import { closingTime } from "../lib/closing-time";
 import type { MarketSummary } from "../types";
 import { MiniCurve } from "./MiniCurve";
+import "./market-card.css";
 
 export function MarketCard({ market, nowSec }: { market: MarketSummary; nowSec: number }) {
-  const clock = nowSec;
   const href = `/market/${encodeURIComponent(market.marketId)}?chain=${market.chainId}`;
+  const uniform = market.pricesWad.every((price) => price === market.pricesWad[0]);
   return (
-    <Link
-      href={href}
-      className="market-card group grid min-w-0 content-between gap-7 border border-border bg-surface p-5 hover:border-border-strong md:p-6"
-    >
-      <div className="flex items-center justify-between text-label text-text-muted">
-        <span>{copy.markets[market.kind]}</span>
-        <ArrowUpRight
-          aria-hidden
-          size={17}
-          className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-        />
+    <Link href={href} className="market-card group">
+      <div className="market-card-top">
+        <div className="market-card-type">
+          <span className="market-card-kind">
+            <ChartNoAxesColumn size={16} aria-hidden />
+            {copy.markets[market.kind]}
+          </span>
+          <span>{copy.markets[market.status]}</span>
+        </div>
+        <MarketCardTitle marketId={market.marketId} fallback={market.question} />
       </div>
-      <MarketCardTitle marketId={market.marketId} fallback={market.question} />
-      <MarketTrace market={market}>
-        <MiniCurve prices={market.pricesWad} />
-      </MarketTrace>
-      <div className="grid gap-2 border-t pt-4 text-small">
-        <div className="flex justify-between gap-2">
-          <span className="text-text-muted">{copy.markets.mostLikely}</span>
-          <span className="tabular">{bucketLabel(market, argMax(market.pricesWad))}</span>
-        </div>
-        <div className="flex justify-between gap-2">
-          <span className="text-text-muted">{copy.motion.liquidity}</span>
-          <span className="tabular">
-            {market.bWad === undefined ? copy.market.metricUnavailable : formatWad(market.bWad)}
-          </span>
-        </div>
-        <div className="flex justify-between gap-2">
-          <span className="text-text-muted">{copy.markets.closes}</span>
-          <span className="tabular">
-            {clock ? closingTime(market.closeTimeSec, clock) : copy.loading.page}
-          </span>
-        </div>
+      <div className="market-card-forecast">
+        <span>{uniform ? copy.markets.distribution : copy.markets.mostLikely}</span>
+        <strong>
+          {uniform ? copy.markets.equalOutcomes : bucketLabel(market, argMax(market.pricesWad))}
+        </strong>
+      </div>
+      <div className="market-card-chart">
+        <MarketTrace market={market}>
+          <MiniCurve prices={market.pricesWad} />
+        </MarketTrace>
+      </div>
+      <div className="market-card-footer">
+        <span>
+          {nowSec && market.closeTimeSec > nowSec ? `${copy.markets.closes} ` : ""}
+          {nowSec ? closingTime(market.closeTimeSec, nowSec) : copy.loading.page}
+        </span>
+        <strong>
+          {copy.markets.viewMarket}
+          <ArrowUpRight size={16} aria-hidden />
+        </strong>
       </div>
     </Link>
   );

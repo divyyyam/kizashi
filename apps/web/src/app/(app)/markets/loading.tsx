@@ -1,15 +1,25 @@
-import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { Container } from "@/components/layout/Container";
-import { PageHeading } from "@/components/layout/PageHeading";
+import Link from "next/link";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
 import { copy } from "@/content/copy";
-import { MarketList } from "@/features/markets";
-export default function MarketsLoading() {
+import { MarketFiltersSkeleton, MarketsSkeleton } from "@/features/markets";
+
+export default function Loading() {
   return (
-    <Container className="flex flex-col gap-8 py-12">
-      <PageHeading>{copy.markets.title}</PageHeading>
-      <NuqsAdapter>
-        <MarketList result={{ status: "loading" }} />
-      </NuqsAdapter>
-    </Container>
+    <section className="flex w-full min-w-0 flex-col gap-6 px-4 py-6 md:px-6 md:py-8 lg:px-8">
+      <PageHeader
+        title={copy.markets.title}
+        description={copy.feedback.marketsHelp}
+        action={
+          <Button asChild variant="secondary">
+            <Link href="/markets/new">{copy.markets.create}</Link>
+          </Button>
+        }
+      />
+      <div className="flex flex-col gap-8">
+        <MarketFiltersSkeleton />
+        <MarketsSkeleton />
+      </div>
+    </section>
   );
 }
