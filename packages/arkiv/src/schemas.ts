@@ -116,7 +116,6 @@ const unixSec = z
 const shortText = (max: number) => z.string().min(1).max(max);
 
 export const marketIdSchema = decimalId;
-const ipfsCid = z.string().regex(/^(Qm[1-9A-HJ-NP-Za-km-z]{44}|b[a-z2-7]{20,100})$/, "IPFS CID");
 export const swarmRefSchema = z.string().regex(/^[0-9a-f]{64}$/, "64-char Swarm reference");
 
 // ---- payloads (JSON in the `payload` bytes column; money in INTERFACES §3 string units) ----
@@ -135,10 +134,9 @@ export const marketPayloadSchema = z.object({
     unit: z.string().max(24).optional(),
   }),
   outcomeLabels: z.array(shortText(48)).max(256).optional(),
-  /** Optional since v1: full market metadata (question, rules, image) pinned on IPFS. */
   category: z.string().max(24).optional(),
-  metadataCid: ipfsCid.optional(),
-  imageCid: ipfsCid.optional(),
+  /** The market's full rules as canonical JSON; keccak256 of these bytes is the on-chain rulesRef. */
+  rulesJson: z.string().min(2).max(65536).optional(),
 });
 export type MarketPayload = z.infer<typeof marketPayloadSchema>;
 

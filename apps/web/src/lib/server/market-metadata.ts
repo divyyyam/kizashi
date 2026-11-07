@@ -1,17 +1,16 @@
 import { factoryAddress, kizashiMarketFactoryAbi } from "@kizashi/contracts";
 import { type MarketMetadata, marketMetadataSchema } from "@kizashi/schemas/market";
-import { bytesToString } from "viem";
+import { stringToBytes } from "viem";
 import { rulesRefOf } from "@/lib/canonical-json";
 import { arcReader } from "./arc";
-import { fetchPinned, type PinataReady } from "./pinata";
 
-export const MAX_METADATA_BYTES = 64 * 1024;
+export const MAX_RULES_BYTES = 64 * 1024;
 export const ARC_CHAIN_ID = 5042002;
 
 export type VerifiedMetadata = {
   metadata: MarketMetadata;
   rulesRef: `0x${string}`;
-  metadataCid: string;
+  rulesJson: string;
 };
 
 export class MetadataError extends Error {
@@ -23,11 +22,10 @@ export class MetadataError extends Error {
   }
 }
 
-/** Reads rulesRef from the factory, fetches the CID from IPFS and checks the hash matches. */
-export async function verifyMarketMetadata(
-  pinata: PinataReady,
+/** Reads rulesRef from the factory and checks that keccak256(rulesJson) matches it. */
+export async function verifyMarketRules(
   marketId: bigint,
-  metadataCid: string,
+  rulesJson: string,
 ): Promise<VerifiedMetadata> {
   const factory = factoryAddress(ARC_CHAIN_ID);
   if (!factory) throw new MetadataError("unavailable", "no factory for Arc testnet");
@@ -48,19 +46,17 @@ export async function verifyMarketMetadata(
   ]);
   if (/^0x0{40}$/i.test(pool))
     throw new MetadataError("not_found", `market ${marketId} does not exist`);
-  const bytes = await fetchPinned(pinata, metadataCid, MAX_METADATA_BYTES);
+  const bytes = stringToBytes(rulesJson);
+  if (bytes.byteLength > MAX_RULES_BYTES) throw new MetadataError("invalid", "rules are too large");
   if (rulesRefOf(bytes).toLowerCase() !== rulesRef.toLowerCase())
-    throw new MetadataError(
-      "mismatch",
-      "IPFS metadata does not match the market's on-chain rulesRef",
-    );
+    throw new MetadataError("mismatch", "the rules do not match the market's on-chain rulesRef");
   let parsed: unknown;
   try {
-    parsed = JSON.parse(bytesToString(bytes));
+    parsed = JSON.parse(rulesJson);
   } catch {
-    throw new MetadataError("invalid", "metadata is not JSON");
+    throw new MetadataError("invalid", "rules are not JSON");
   }
   const result = marketMetadataSchema.safeParse(parsed);
-  if (!result.success) throw new MetadataError("invalid", "metadata does not match schema v1");
-  return { metadata: result.data, rulesRef, metadataCid };
+  if (!result.success) throw new MetadataError("invalid", "rules do not match schema v1");
+  return { metadata: result.data, rulesRef, rulesJson };
 }

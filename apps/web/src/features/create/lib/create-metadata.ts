@@ -8,9 +8,8 @@ export function createMetadata(options: {
   values: CreateFormValues;
   creator: Address;
   subsidyUsdc: bigint;
-  image?: MarketMetadata["image"];
 }): MarketMetadata {
-  const { values, creator, subsidyUsdc, image } = options;
+  const { values, creator, subsidyUsdc } = options;
   const grid = gridOf(values);
   if (!grid) throw new Error("invalid grid");
   return {
@@ -21,7 +20,6 @@ export function createMetadata(options: {
     description: values.description,
     category: values.category,
     tags: splitTags(values.tags),
-    ...(image ? { image } : {}),
     outcomes:
       values.kind === "binary"
         ? { kind: "binary", yes: values.yesLabel, no: values.noLabel }

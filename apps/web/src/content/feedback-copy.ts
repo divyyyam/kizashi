@@ -47,7 +47,6 @@ export const feedbackCopy = {
     method: "Method",
     closes: "Closes",
     verified: "Rules match the on-chain hash",
-    ipfs: "IPFS document",
     arkiv: "Arkiv listing",
     buckets: (count: number) => `${count} buckets`,
     manual: (minutes: number) => `Resolver proposes after close; ${minutes}-minute dispute window`,
@@ -79,7 +78,6 @@ export const feedbackCopy = {
     next: "Continue",
     submit: "Create market",
     submitting: "Creating…",
-    uploadError: "The upload could not be completed. Your form has been kept; try again.",
     listingError:
       "The market exists, but its listing could not be published. Retry the listing only.",
     generic:
@@ -89,8 +87,6 @@ export const feedbackCopy = {
     pending: "A creation request is already in progress. Check your wallet before trying again.",
     partial: "Check the transaction before creating again. It may already have been submitted.",
     steps: {
-      image: "Upload image",
-      metadata: "Publish rules",
       approve: "Approve USDC",
       create: "Create on Arc",
       listing: "Publish on Arkiv",

@@ -71,13 +71,13 @@ correct curve pays more than the matching binary bet.
 - the method: a resolver with a 30-minute dispute window, or Uniswap v4 TWAP;
 - the initial USDC liquidity.
 
-1. The image and the metadata JSON are pinned to IPFS (Pinata, server-side).
-2. The market's on-chain `rulesRef` is **keccak256 of the canonical metadata JSON**, so the chain
-   commits to the exact question and rules.
-3. `createMarket` on Arc moves the USDC subsidy into a fresh pool.
-4. The listing service re-reads the market from Arc, re-hashes the IPFS document against
-   `rulesRef`, and only then publishes the Arkiv listing.
-5. The market page shows **"Rules match the on-chain hash"**, with links.
+1. The browser builds the rules JSON in canonical form (sorted keys); its `rulesRef` is
+   **keccak256 of those bytes**, so the chain commits to the exact question and rules.
+2. USDC is approved, then `createMarket` on Arc moves the subsidy into a fresh pool.
+3. The listing service re-reads the market from Arc, re-hashes the submitted rules against
+   `rulesRef`, and only then publishes the Arkiv entity with the full rules JSON, the market
+   address, the rules hash and the chain id.
+4. The market page reads the rules from Arkiv and shows **"Rules match the on-chain hash"**.
 
 ### The engine (Suggest mode)
 
@@ -193,7 +193,7 @@ explorer. Nothing is mocked.
   and it was [finalized](https://explorer.testnet.arc.io/tx/0xc00d03045567fcc7a2e214674ba3e81edff837709399eaa38d334b663a1d546c)
   after the 30-minute dispute window. This settlement is manual, not TWAP.
 
-### Seeded markets (image and rules on IPFS, listing on Arkiv)
+### Seeded markets (rules and listing on Arkiv)
 
 | #   | Market                                                                     | createMarket tx                                                                                                        | Metadata (IPFS)   | Arkiv listing                                                                                                                   |
 | --- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
@@ -275,13 +275,13 @@ apps/engine         LangGraph engine behind an Express 5 API
 
 ```sh
 bun install
-cp .env.example .env              # fill in RPCs, keys and Pinata (see the comments)
+cp .env.example .env              # fill in RPCs, and keys (see the comments)
 bun run check                     # lint, typecheck, tests, build
 bun run forge:test                # contract tests
 cd apps/web && bun run dev        # http://localhost:3000
 ```
 
-Seed real markets (IPFS → Arc → Arkiv): `cd apps/web && bun --env-file=../../.env scripts/seed-markets.ts`.
+Seed real markets (rules → Arc → Arkiv): `cd apps/web && bun --env-file=../../.env scripts/seed-markets.ts`.
 
 ## AI use
 

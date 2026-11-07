@@ -4,19 +4,12 @@ import { bFromSubsidy, lossBound, toWad } from "@kizashi/core";
 import { parseUnits } from "viem";
 import { copy } from "@/content/copy";
 import { formatWad } from "@/lib/format";
-import type { PreparedImage } from "../lib/image";
 import { type CreateFormValues, gridOf, splitTags } from "../types";
 import { PreviewFacts } from "./PreviewFacts";
 import { PreviewOutcomes } from "./PreviewOutcomes";
 
 /** Live card showing how the market will look and what the creator risks. */
-export function MarketPreview({
-  values,
-  image,
-}: {
-  values: CreateFormValues;
-  image: PreparedImage | undefined;
-}) {
+export function MarketPreview({ values }: { values: CreateFormValues }) {
   const grid = gridOf(values);
   const n = grid ? Number(grid.n) : undefined;
   let risk: { maxLoss: string; start: string } | undefined;
@@ -37,10 +30,6 @@ export function MarketPreview({
     <aside className="grid min-w-0 content-start gap-5 rounded-xl border border-border bg-surface p-5 text-small md:p-6">
       <p className="text-text-faint">{copy.create.card}</p>
       <div className="flex gap-4">
-        <div className="size-16 shrink-0 overflow-hidden rounded-md border border-border bg-bg">
-          {/* biome-ignore lint/performance/noImgElement: local blob preview */}
-          {image ? <img src={image.url} alt="" className="size-full object-cover" /> : null}
-        </div>
         <div className="grid min-w-0 gap-1 break-words">
           <p className="text-text-faint capitalize">{values.category}</p>
           <p className="text-body text-text">{values.question || copy.create.unnamed}</p>

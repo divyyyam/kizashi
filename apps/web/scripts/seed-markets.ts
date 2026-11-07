@@ -1,7 +1,7 @@
 /**
  * Creates real demo markets end to end through the same pipeline as the create page:
- * cover image + metadata pinned to IPFS (Pinata) → createMarket on Arc with USDC liquidity →
- * Arkiv listing via the listing service. Idempotent by question: it skips any market whose
+ * canonical rules JSON, keccak256 as rulesRef → createMarket on Arc with USDC liquidity →
+ * Arkiv listing (full rules JSON) via the listing service. Idempotent by question: it skips any market whose
  * question is already listed on Arkiv by the listing wallet.
  *
  *   cd apps/web && bun --env-file=../../.env scripts/seed-markets.ts [--only <n>] [--subsidy 1]
@@ -20,22 +20,21 @@ import {
   decodeEventLog,
   http,
   isHex,
+  keccak256,
   parseUnits,
+  stringToBytes,
   zeroAddress,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { POST as ipfsPost } from "@/app/api/ipfs/route";
 import { POST as listingPost } from "@/app/api/markets/listing/route";
+import { canonicalJson } from "@/lib/canonical-json";
 import { arkivServerReader, listingWriterAddress } from "@/lib/server/arkiv";
-import { coverPng } from "./png";
 
-type RGB = [number, number, number];
 type Seed = {
   question: string;
   description: string;
   category: MarketMetadata["category"];
   tags: string[];
-  colors: [RGB, RGB];
   outcomes: MarketMetadata["outcomes"];
   closeIso: string;
   resolution: Omit<MarketMetadata["resolution"], "disputeWindowSec">;
@@ -47,10 +46,6 @@ const SEEDS: Seed[] = [
     description: "Resolves on the ETH/USD daily close for 31 Dec 2026 (UTC).",
     category: "crypto",
     tags: ["eth", "price"],
-    colors: [
-      [56, 66, 180],
-      [130, 90, 230],
-    ],
     outcomes: { kind: "binary", yes: "Above $5,000", no: "$5,000 or below" },
     closeIso: "2026-12-31T23:00:00Z",
     resolution: {
@@ -68,10 +63,6 @@ const SEEDS: Seed[] = [
     description: "A distribution market on the BTC/USD daily close for 31 Dec 2026 (UTC).",
     category: "crypto",
     tags: ["btc", "price", "range"],
-    colors: [
-      [200, 110, 20],
-      [250, 190, 60],
-    ],
     outcomes: {
       kind: "curve",
       unit: "USD",
@@ -95,10 +86,6 @@ const SEEDS: Seed[] = [
       "Settled automatically by Kizashi's Uniswap v4 TWAP oracle on the KZT/USDC pool on Arc testnet.",
     category: "crypto",
     tags: ["uniswap", "twap", "kzt"],
-    colors: [
-      [230, 40, 140],
-      [255, 140, 200],
-    ],
     outcomes: { kind: "curve", unit: "USDC", low: "0.50", high: "2.50", buckets: 8, precision: 2 },
     closeIso: "2026-11-06T19:20:00Z",
     resolution: {
@@ -113,10 +100,6 @@ const SEEDS: Seed[] = [
     description: "Premier League 2026–27 table position at the start of the new year.",
     category: "sports",
     tags: ["football", "premier-league", "arsenal"],
-    colors: [
-      [170, 20, 30],
-      [240, 90, 80],
-    ],
     outcomes: { kind: "binary", yes: "Top of the table", no: "Not top" },
     closeIso: "2026-12-31T23:00:00Z",
     resolution: {
@@ -134,10 +117,6 @@ const SEEDS: Seed[] = [
       "Total goals across every Premier League match that kicks off on 26 December 2026 (UK time).",
     category: "sports",
     tags: ["football", "premier-league", "goals"],
-    colors: [
-      [40, 120, 60],
-      [140, 210, 110],
-    ],
     outcomes: { kind: "curve", unit: "goals", low: "10", high: "40", buckets: 15, precision: 0 },
     closeIso: "2026-12-26T11:00:00Z",
     resolution: {
@@ -155,10 +134,6 @@ const SEEDS: Seed[] = [
     description: "The quickest ball bowled in any men's Test, ODI or T20I played in December 2026.",
     category: "sports",
     tags: ["cricket", "bowling", "speed"],
-    colors: [
-      [20, 90, 160],
-      [90, 190, 230],
-    ],
     outcomes: { kind: "curve", unit: "km/h", low: "140", high: "160", buckets: 10, precision: 0 },
     closeIso: "2026-12-31T18:00:00Z",
     resolution: {
@@ -176,10 +151,6 @@ const SEEDS: Seed[] = [
     description: "Any batter, any men's Test match played between 1 and 31 December 2026.",
     category: "sports",
     tags: ["cricket", "test", "batting"],
-    colors: [
-      [120, 80, 20],
-      [220, 180, 90],
-    ],
     outcomes: { kind: "binary", yes: "Yes, 200+", no: "No" },
     closeIso: "2026-12-31T18:00:00Z",
     resolution: {
@@ -195,10 +166,6 @@ const SEEDS: Seed[] = [
     description: "Counts projects listed for ETHGlobal Mumbai on the ETHGlobal showcase.",
     category: "tech",
     tags: ["ethglobal", "hackathon"],
-    colors: [
-      [90, 40, 160],
-      [200, 120, 240],
-    ],
     outcomes: { kind: "binary", yes: "More than 400", no: "400 or fewer" },
     closeIso: "2026-11-07T00:30:00Z",
     resolution: {
@@ -286,21 +253,13 @@ async function main() {
       break;
     }
 
-    // 1. cover image → IPFS
-    const png = coverPng(i * 7919 + 17, seed.colors[0], seed.colors[1]);
-    const imgForm = new FormData();
-    imgForm.append("kind", "image");
-    imgForm.append("file", new Blob([png as BlobPart], { type: "image/png" }), "cover.png");
-    const img = await call(ipfsPost, { method: "POST", body: imgForm });
-
-    // 2. metadata → IPFS, rulesRef = keccak256(canonical JSON)
+    // 1. rules → canonical JSON, rulesRef = keccak256(canonical JSON)
     const metadata: MarketMetadata = {
       v: 1,
       question: seed.question,
       description: seed.description,
       category: seed.category,
       tags: seed.tags,
-      image: { cid: String(img.cid), mime: "image/png", width: 640, height: 640 },
       outcomes: seed.outcomes,
       closeTimeSec: close,
       resolution: {
@@ -311,10 +270,8 @@ async function main() {
       creator: account.address,
       createdAtSec: Math.floor(Date.now() / 1000),
     };
-    const metaForm = new FormData();
-    metaForm.append("kind", "metadata");
-    metaForm.append("metadata", JSON.stringify(metadata));
-    const pinned = await call(ipfsPost, { method: "POST", body: metaForm });
+    const rulesJson = canonicalJson(metadata);
+    const rulesRef = keccak256(stringToBytes(rulesJson));
 
     // 3. grid
     const o = seed.outcomes;
@@ -387,7 +344,7 @@ async function main() {
         closeTime: BigInt(close),
         kind: o.kind === "binary" ? 0 : 1,
         resolution: twap ? 2 : 1,
-        rulesRef: pinned.rulesRef as `0x${string}`,
+        rulesRef,
         priceSource,
       },
     ] as const;
@@ -415,13 +372,13 @@ async function main() {
     }
     if (marketId === undefined) throw new Error(`${tag}: no MarketCreated in ${tx}`);
 
-    // 5. Arkiv listing (verifies chain + IPFS hash server-side)
+    // 5. Arkiv listing (verifies chain + rules hash server-side)
     let listing = "";
     try {
       const l = await call(listingPost, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ marketId: marketId.toString(), metadataCid: pinned.cid }),
+        body: JSON.stringify({ marketId: marketId.toString(), rulesJson }),
       });
       listing = String(l.entityKey);
     } catch (error) {
@@ -432,9 +389,7 @@ async function main() {
         market: marketId.toString(),
         question: seed.question,
         createTx: tx,
-        imageCid: img.cid,
-        metadataCid: pinned.cid,
-        rulesRef: pinned.rulesRef,
+        rulesRef,
         arkiv: listing,
       }),
     );

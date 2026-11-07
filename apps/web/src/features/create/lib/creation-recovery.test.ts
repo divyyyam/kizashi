@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, mock, spyOn } from "bun:test";
+import { afterEach, describe, expect, it, mock } from "bun:test";
 import { arcTestnet } from "@kizashi/contracts";
 import type { Address, Hash, PublicClient, WalletClient } from "viem";
 import { CREATE_DEFAULTS } from "./form-defaults";
@@ -6,7 +6,6 @@ import { CREATE_DEFAULTS } from "./form-defaults";
 process.env.NEXT_PUBLIC_CHAIN_ID ??= String(arcTestnet.id);
 process.env.NEXT_PUBLIC_ARC_RPC_URL ??= arcTestnet.rpcUrls.default.http[0];
 const { createTransaction, CreationSubmittedError } = await import("./create-transaction");
-const { performCreation } = await import("./perform-creation");
 afterEach(() => mock.restore());
 
 const owner: Address = `0x${"1".repeat(40)}`;
@@ -44,13 +43,6 @@ function context(options: { abortAfterSimulation?: AbortController; receiptFails
 }
 
 describe("creation recovery", () => {
-  it("stops at a malformed upload response before any wallet request", async () => {
-    spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ cid: "incomplete" }));
-    const run = context();
-    const result = await performCreation(run, values, undefined);
-    expect(result).toMatchObject({ phase: "failed", step: "metadata" });
-    expect(run.write).not.toHaveBeenCalled();
-  });
   it("retains the submitted hash when confirmation is interrupted", async () => {
     const run = context({ receiptFails: true });
     const failure = await createTransaction(run, {

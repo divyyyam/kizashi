@@ -2,15 +2,13 @@ import { CheckCircle2, Circle, LoaderCircle, XCircle } from "lucide-react";
 import { copy } from "@/content/copy";
 import type { CreateProgress, CreateStep } from "../lib/creation-progress";
 
-const ORDER: readonly CreateStep[] = ["image", "metadata", "approve", "create", "listing"];
+const ORDER: readonly CreateStep[] = ["approve", "create", "listing"];
 export function CreateProgressTrack({
   progress,
-  hasImage,
 }: {
   progress: Exclude<CreateProgress, { phase: "idle" }>;
-  hasImage: boolean;
 }) {
-  const steps = ORDER.filter((step) => step !== "image" || hasImage);
+  const steps = ORDER;
   const current = progress.phase === "done" ? undefined : progress.step;
   const index = current ? steps.indexOf(current) : steps.length;
   return (

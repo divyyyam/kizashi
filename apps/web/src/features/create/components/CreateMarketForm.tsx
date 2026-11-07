@@ -9,7 +9,7 @@ import { MarketPreview } from "./MarketPreview";
 
 export function CreateMarketForm() {
   const state = useCreateForm();
-  const { form, step, setStep, values, image, setImage, action, busy, done } = state;
+  const { form, step, setStep, values, action, busy, done } = state;
   return (
     <div className="grid items-start gap-8 lg:grid-cols-12">
       <form
@@ -41,18 +41,17 @@ export function CreateMarketForm() {
           ))}
         </ol>
         <fieldset disabled={busy || done} className="grid min-w-0 gap-5">
-          <CreateSteps step={step} form={form} values={values} image={image} onImage={setImage} />
+          <CreateSteps step={step} form={form} values={values} />
         </fieldset>
         <CreateNavigation state={state} />
         <CreateProgressPanel
           progress={action.progress}
-          hasImage={Boolean(image)}
           retrying={action.isRetrying}
           onRetryListing={() => void action.retryListing()}
         />
       </form>
       <div className="min-w-0 lg:sticky lg:top-24 lg:col-span-4">
-        <MarketPreview values={values} image={image} />
+        <MarketPreview values={values} />
       </div>
     </div>
   );

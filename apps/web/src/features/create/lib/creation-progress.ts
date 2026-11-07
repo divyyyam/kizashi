@@ -1,8 +1,7 @@
 import type { Hash } from "viem";
 import type { CreateFormValues } from "../types";
-import type { PreparedImage } from "./image";
 
-export type CreateStep = "image" | "metadata" | "approve" | "create" | "listing";
+export type CreateStep = "approve" | "create" | "listing";
 export type CreateProgress =
   | { phase: "idle" }
   | { phase: "running"; step: CreateStep; txHash?: Hash }
@@ -11,7 +10,7 @@ export type CreateProgress =
       step: CreateStep;
       message: string;
       marketId?: bigint;
-      metadataCid?: string;
+      rulesJson?: string;
       txHash?: Hash;
       creationSubmitted?: boolean;
     }
@@ -19,7 +18,7 @@ export type CreateProgress =
       phase: "done";
       marketId: bigint;
       createTx: Hash;
-      metadataCid: string;
+      rulesJson: string;
       listing: { entityKey?: string; error?: string };
     };
 
@@ -28,6 +27,6 @@ export type CreateMarket = {
   reason?: string;
   progress: CreateProgress;
   isRetrying: boolean;
-  create: (values: CreateFormValues, image: PreparedImage | undefined) => Promise<void>;
+  create: (values: CreateFormValues) => Promise<void>;
   retryListing: () => Promise<void>;
 };

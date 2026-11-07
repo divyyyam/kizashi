@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { CREATE_DEFAULTS } from "../lib/form-defaults";
-import type { PreparedImage } from "../lib/image";
 import { type CreateFormValues, createFormSchema, STEP_FIELDS, STEPS } from "../types";
 import { useCreateMarket } from "./use-create-market";
 
@@ -16,7 +15,6 @@ export function useCreateForm() {
   });
   const values = { ...CREATE_DEFAULTS, ...useWatch({ control: form.control }) } as CreateFormValues;
   const [step, setStep] = useState(0);
-  const [image, setImage] = useState<PreparedImage>();
   const action = useCreateMarket();
   const last = step === STEPS.length - 1;
   const busy = action.progress.phase === "running";
@@ -35,7 +33,7 @@ export function useCreateForm() {
       if (firstBad >= 0) setStep(firstBad);
       return;
     }
-    await action.create(form.getValues(), image);
+    await action.create(form.getValues());
   }
-  return { form, values, step, setStep, image, setImage, action, last, busy, done, next };
+  return { form, values, step, setStep, action, last, busy, done, next };
 }

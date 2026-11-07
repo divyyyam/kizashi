@@ -1,9 +1,8 @@
 import { explorerEntityUrl, listingByMarketId } from "@kizashi/arkiv";
 import { arkivServerReader, listingWriterAddress } from "@/lib/server/arkiv";
-import { ARC_CHAIN_ID, MetadataError, verifyMarketMetadata } from "@/lib/server/market-metadata";
-import { gatewayUrl, PinataError, pinataConfig } from "@/lib/server/pinata";
+import { ARC_CHAIN_ID, MetadataError, verifyMarketRules } from "@/lib/server/market-metadata";
 
-// Market metadata for the UI: listing (Arkiv) → CID → IPFS document → hash checked against the
+// Market metadata for the UI: listing (Arkiv) → rules JSON → hash checked against the
 // market's on-chain rulesRef. Returns a DataState-shaped body; never invents content.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,8 +25,6 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
 }
 
 async function load(id: string) {
-  const pinata = pinataConfig();
-  if (pinata.status !== "ready") return { status: "unavailable", reason: pinata.reason } as const;
   const reader = arkivServerReader();
   if (reader.status !== "ready") return { status: "unavailable", reason: reader.reason } as const;
   const owner = listingWriterAddress();
@@ -36,19 +33,14 @@ async function load(id: string) {
       arcChainId: ARC_CHAIN_ID,
       ...(owner ? { owner } : {}),
     });
-    const cid = listing?.payload.metadataCid;
-    if (!listing || !cid)
+    const rulesJson = listing?.payload.rulesJson;
+    if (!listing || !rulesJson)
       return { status: "empty", reason: "This market has no published metadata." } as const;
-    const verified = await verifyMarketMetadata(pinata, BigInt(id), cid);
+    const verified = await verifyMarketRules(BigInt(id), rulesJson);
     return {
       status: "ready",
       data: {
         metadata: verified.metadata,
-        metadataCid: cid,
-        metadataUrl: gatewayUrl(pinata.gateway, cid),
-        imageUrl: verified.metadata.image
-          ? gatewayUrl(pinata.gateway, verified.metadata.image.cid)
-          : null,
         rulesRef: verified.rulesRef,
         listing: { entityKey: listing.entityKey, url: explorerEntityUrl(listing.entityKey) },
         verified: true,
@@ -59,8 +51,6 @@ async function load(id: string) {
       return { status: "error", message: error.message } as const;
     if (error instanceof MetadataError)
       return { status: "unavailable", reason: error.message } as const;
-    if (error instanceof PinataError)
-      return { status: "unavailable", reason: error.message } as const;
-    return { status: "unavailable", reason: "Arkiv or IPFS could not be reached" } as const;
+    return { status: "unavailable", reason: "Arkiv could not be reached" } as const;
   }
 }

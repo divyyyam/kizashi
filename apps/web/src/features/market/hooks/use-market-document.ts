@@ -1,6 +1,6 @@
 import { copy } from "@/content/copy";
 import type { DataState } from "@/lib/data-state";
-export type MarketDocument = { text: string; swarmReference: string; gatewayUrl: string };
+export type MarketDocument = { text: string; swarmReference: string; href: string };
 export function useMarketDocument(_input: {
   chainId: number;
   marketId: string;

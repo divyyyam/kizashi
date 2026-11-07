@@ -19,7 +19,7 @@ export function DocumentPanel({
             {result.data.text}
           </p>
           <a
-            href={result.data.gatewayUrl}
+            href={result.data.href}
             target="_blank"
             rel="noreferrer"
             className="inline-flex min-h-10 items-center text-small underline"

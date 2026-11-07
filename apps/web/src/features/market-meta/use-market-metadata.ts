@@ -9,7 +9,7 @@ import { type MarketMetaView, metadataResponseSchema } from "./metadata-response
 
 export type { MarketMetaView } from "./metadata-response";
 
-/** Market metadata from /api/markets/:id/metadata (Arkiv → IPFS → hash checked against Arc). */
+/** Market metadata from /api/markets/:id/metadata (Arkiv → rules JSON → hash checked against Arc). */
 export function useMarketMetadata(marketId: string | undefined): DataState<MarketMetaView> {
   const query = useQuery({
     queryKey: ["market-metadata", marketId],

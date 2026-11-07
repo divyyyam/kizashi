@@ -3,19 +3,23 @@ import { factoryAddress, kizashiMarketFactoryAbi, kizashiPoolAbi } from "@kizash
 import { z } from "zod";
 import { arcReader } from "@/lib/server/arc";
 import { arkivServerReader, listingWriter, serialised } from "@/lib/server/arkiv";
-import { ARC_CHAIN_ID, MetadataError, verifyMarketMetadata } from "@/lib/server/market-metadata";
-import { PinataError, pinataConfig } from "@/lib/server/pinata";
+import {
+  ARC_CHAIN_ID,
+  MAX_RULES_BYTES,
+  MetadataError,
+  verifyMarketRules,
+} from "@/lib/server/market-metadata";
 import { allow, clientKey } from "@/lib/server/rate-limit";
 
 // Publishes the Arkiv listing for a market that already exists on Arc. Nothing from the request
-// is trusted except the marketId and CID: everything written comes from chain or from the IPFS
-// document whose hash the chain already commits to.
+// is trusted except the marketId and the rules JSON: everything written comes from chain or from
+// the rules document whose keccak256 the chain already commits to.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const body = z.object({
   marketId: z.string().regex(/^[1-9]\d{0,9}$/),
-  metadataCid: z.string().min(20).max(120),
+  rulesJson: z.string().min(2).max(MAX_RULES_BYTES),
 });
 
 const fail = (status: number, code: string, message: string) =>
@@ -25,15 +29,13 @@ export async function POST(request: Request): Promise<Response> {
   if (!allow(`listing:${clientKey(request)}`, 20, 10 * 60_000))
     return fail(429, "rate_limited", "Too many listing requests");
   const parsed = body.safeParse(await request.json().catch(() => undefined));
-  if (!parsed.success) return fail(400, "bad_request", "marketId and metadataCid are required");
-  const pinata = pinataConfig();
-  if (pinata.status !== "ready") return fail(503, "ipfs_unavailable", pinata.reason);
+  if (!parsed.success) return fail(400, "bad_request", "marketId and rulesJson are required");
   const writer = listingWriter();
   if (writer.status !== "ready") return fail(503, "arkiv_unavailable", writer.reason);
 
   const marketId = BigInt(parsed.data.marketId);
   try {
-    const verified = await verifyMarketMetadata(pinata, marketId, parsed.data.metadataCid);
+    const verified = await verifyMarketRules(marketId, parsed.data.rulesJson);
     const { metadata } = verified;
     const factory = factoryAddress(ARC_CHAIN_ID);
     if (!factory) return fail(503, "unavailable", "no factory");
@@ -49,6 +51,8 @@ export async function POST(request: Request): Promise<Response> {
       arc.readContract({ address: pool, abi: kizashiPoolAbi, functionName: "creator" }),
       arc.readContract({ address: pool, abi: kizashiPoolAbi, functionName: "state" }),
     ]);
+    if (metadata.creator.toLowerCase() !== creator.toLowerCase())
+      return fail(409, "bad_creator", "rules creator does not match the pool creator");
     const isBinary = metadata.outcomes.kind === "binary";
     const expectedN = isBinary
       ? 2n
@@ -90,8 +94,7 @@ export async function POST(request: Request): Promise<Response> {
           },
           ...(outcomes.kind === "binary" ? { outcomeLabels: [outcomes.no, outcomes.yes] } : {}),
           category: metadata.category,
-          metadataCid: verified.metadataCid,
-          ...(metadata.image ? { imageCid: metadata.image.cid } : {}),
+          rulesJson: verified.rulesJson,
         },
       }),
     );
@@ -99,7 +102,6 @@ export async function POST(request: Request): Promise<Response> {
   } catch (error) {
     if (error instanceof MetadataError)
       return fail(error.code === "not_found" ? 404 : 409, error.code, error.message);
-    if (error instanceof PinataError) return fail(502, "ipfs_unavailable", error.message);
     return fail(
       502,
       "arkiv_unavailable",

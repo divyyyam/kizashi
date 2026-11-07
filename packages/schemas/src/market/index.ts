@@ -2,9 +2,9 @@ import { z } from "zod";
 
 /**
  * Market metadata (v1): everything a person needs to understand and trust a market. It's pinned
- * to IPFS as canonical JSON, and the market's on-chain `rulesRef` is keccak256 of those exact
- * bytes, so the chain commits to this question, these outcomes and these rules. The Arkiv listing
- * carries the CIDs for discovery; readers re-hash and compare with the chain.
+ * as canonical JSON, and the market's on-chain `rulesRef` is keccak256 of those exact bytes, so
+ * the chain commits to this question, these outcomes and these rules. The Arkiv listing carries
+ * the full canonical JSON; readers re-hash it and compare with the chain.
  */
 
 export const MARKET_METADATA_VERSION = 1;
@@ -24,10 +24,6 @@ export type MarketCategory = (typeof MARKET_CATEGORIES)[number];
 export const RESOLUTION_SOURCES = ["manual", "uniswap-twap"] as const;
 export type ResolutionSourceType = (typeof RESOLUTION_SOURCES)[number];
 
-export const IMAGE_MIME_TYPES = ["image/webp", "image/png", "image/jpeg", "image/gif"] as const;
-export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
-
-const cid = z.string().regex(/^(Qm[1-9A-HJ-NP-Za-km-z]{44}|b[a-z2-7]{20,100})$/, "IPFS CID");
 const address = z.string().regex(/^0x[0-9a-fA-F]{40}$/, "address");
 const decimal = z.string().regex(/^-?\d+(\.\d+)?$/, "decimal number");
 const unixSec = z
@@ -39,14 +35,6 @@ const httpsUrl = z
   .url()
   .refine((value) => value.startsWith("https://"), "must be an https link")
   .max(300);
-
-export const marketImageSchema = z.object({
-  cid,
-  mime: z.enum(IMAGE_MIME_TYPES),
-  width: z.number().int().positive().max(8192),
-  height: z.number().int().positive().max(8192),
-});
-export type MarketImage = z.infer<typeof marketImageSchema>;
 
 export const binaryOutcomesSchema = z.object({
   kind: z.literal("binary"),
@@ -97,7 +85,6 @@ export const marketMetadataSchema = z
     description: z.string().trim().max(5000),
     category: z.enum(MARKET_CATEGORIES),
     tags: z.array(z.string().trim().min(1).max(24)).max(5),
-    image: marketImageSchema.optional(),
     outcomes: marketOutcomesSchema,
     /** Trading closes, and the market expires, at this time (the pool's closeTime). */
     closeTimeSec: unixSec,

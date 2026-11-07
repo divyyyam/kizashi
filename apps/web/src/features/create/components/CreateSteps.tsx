@@ -5,10 +5,8 @@ import { MARKET_CATEGORIES } from "@kizashi/schemas/market";
 import type { UseFormReturn } from "react-hook-form";
 import { NativeSelect } from "@/components/ui/select";
 import { appChain } from "@/lib/wagmi";
-import type { PreparedImage } from "../lib/image";
 import type { CreateFormValues } from "../types";
 import { Field, inputClass } from "./Field";
-import { ImagePicker } from "./ImagePicker";
 
 const CATEGORY_LABEL: Record<(typeof MARKET_CATEGORIES)[number], string> = {
   crypto: "Crypto",
@@ -25,11 +23,9 @@ type Props = {
   step: number;
   form: UseFormReturn<CreateFormValues>;
   values: CreateFormValues;
-  image: PreparedImage | undefined;
-  onImage: (image: PreparedImage | undefined) => void;
 };
 
-export function CreateSteps({ step, form, values, image, onImage }: Props) {
+export function CreateSteps({ step, form, values }: Props) {
   const { register, formState } = form;
   const e = formState.errors;
   const twap = deploymentByChainId(appChain.id)?.twap;
@@ -81,7 +77,6 @@ export function CreateSteps({ step, form, values, image, onImage }: Props) {
             )}
           </Field>
         </div>
-        <ImagePicker image={image} onImage={onImage} />
       </div>
     );
 

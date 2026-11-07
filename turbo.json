@@ -13,9 +13,7 @@
         "ARKIV_RPC_URL",
         "LISTING_ARKIV_PRIVATE_KEY",
         "GOOGLE_GENERATIVE_AI_API_KEY",
-        "ENGINE_GEMINI_MODEL",
-        "PINATA_JWT",
-        "PINATA_GATEWAY"
+        "ENGINE_GEMINI_MODEL"
       ]
     },
     "dev": {

@@ -7,7 +7,6 @@ import { copy } from "@/content/copy";
 import { appChain } from "@/lib/wagmi";
 import { publishListing } from "../lib/create-requests";
 import type { CreateProgress } from "../lib/creation-progress";
-import type { PreparedImage } from "../lib/image";
 import { performCreation } from "../lib/perform-creation";
 import type { CreateFormValues } from "../types";
 
@@ -29,7 +28,7 @@ export function useCreationActions({ client, wallet, owner, walletChain }: Optio
     return () => controller.current?.abort();
   }, [owner, walletChain]);
 
-  async function create(values: CreateFormValues, image: PreparedImage | undefined) {
+  async function create(values: CreateFormValues) {
     if (
       busy.current ||
       !client ||
@@ -46,7 +45,6 @@ export function useCreationActions({ client, wallet, owner, walletChain }: Optio
       const result = await performCreation(
         { client, wallet, owner, signal: controller.current.signal, report: setProgress },
         values,
-        image,
       );
       setProgress(result);
       if (result.phase === "done") await queries.invalidateQueries();
@@ -62,7 +60,7 @@ export function useCreationActions({ client, wallet, owner, walletChain }: Optio
     try {
       const entityKey = await publishListing(
         progress.marketId,
-        progress.metadataCid,
+        progress.rulesJson,
         controller.current.signal,
       );
       setProgress({ ...progress, listing: { entityKey } });
