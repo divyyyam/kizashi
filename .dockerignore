@@ -15,7 +15,8 @@
 !deploy/.env.example
 apps/web/**
 !apps/web/package.json
-contracts
+contracts/*
+!contracts/deployments
 docs
 arkiv
 scripts
@@ -27,3 +28,7 @@ deploy
 .agent
 .agents
 *.md
+apps/indexer/.state
+.worktrees
+.aws
+**/test
