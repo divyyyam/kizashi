@@ -1,6 +1,7 @@
 "use client";
 
-import { Wallet } from "lucide-react";
+import { MarketsLink } from "@/components/feedback/MarketsLink";
+import { StatePanel } from "@/components/feedback/StatePanel";
 import { copy } from "@/content/copy";
 import { ConnectButton } from "@/features/wallet";
 import { usePortfolio } from "../hooks/use-portfolio";
@@ -14,12 +15,13 @@ export function PortfolioScreen() {
   return account.connected ? (
     <PortfolioView result={result} />
   ) : (
-    <section className="venue-state">
-      <div className="venue-state-icon" aria-hidden>
-        <Wallet />
-      </div>
-      <h2>{copy.portfolio.connect}</h2>
+    <StatePanel
+      kind="unavailable"
+      title={copy.feedback.portfolioConnect}
+      message={copy.feedback.portfolioConnectHelp}
+    >
       <ConnectButton />
-    </section>
+      <MarketsLink />
+    </StatePanel>
   );
 }

@@ -1,12 +1,13 @@
 import { Container } from "@/components/layout/Container";
-import { PageHeading } from "@/components/layout/PageHeading";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { copy } from "@/content/copy";
-import { PortfolioView } from "@/features/portfolio";
-export default function PortfolioLoading() {
+import { PortfolioSkeleton } from "@/features/portfolio";
+
+export default function Loading() {
   return (
-    <Container className="flex flex-col gap-8 py-12">
-      <PageHeading>{copy.portfolio.title}</PageHeading>
-      <PortfolioView result={{ status: "loading" }} />
+    <Container className="flex max-w-wide flex-col gap-6 py-6 md:py-8">
+      <PageHeader title={copy.portfolio.title} description={copy.feedback.portfolioHelp} />
+      <PortfolioSkeleton />
     </Container>
   );
 }

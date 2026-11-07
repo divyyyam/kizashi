@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import type { Camera, PanelId, Point } from "../lib/canvas";
+import { type Camera, COMPACT_CANVAS_QUERY, type PanelId, type Point } from "../lib/canvas";
 import { useCanvasSpace } from "./use-canvas-input";
 
 type Drag = { pointer: number; start: Point; origin: Point; panel: PanelId | null };
@@ -23,6 +23,7 @@ export function useCanvasDrag({ cameraRef, panels, setPanels, setCamera, setFron
   const drag = useRef<Drag | null>(null);
   const space = useCanvasSpace();
   function start(event: ReactPointerEvent<HTMLElement>, panel: PanelId | null = null) {
+    if (window.matchMedia(COMPACT_CANVAS_QUERY).matches) return;
     if (event.button !== 0 && event.button !== 1) return;
     if (
       panel === null &&

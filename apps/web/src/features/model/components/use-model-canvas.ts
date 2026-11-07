@@ -63,6 +63,7 @@ export function useModelCanvas(focused: boolean) {
   }
   function reset() {
     setPanels(positions());
+    setFront("analysis");
     const element = stage.current;
     if (element)
       setCamera(centerPanel(element.clientWidth, element.clientHeight, PANEL_LAYOUT.analysis));

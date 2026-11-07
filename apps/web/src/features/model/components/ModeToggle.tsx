@@ -16,9 +16,11 @@ export function ModeToggle({ mode, onChange, describedBy }: ModeToggleProps) {
   return (
     <fieldset
       aria-describedby={describedBy}
-      className="inline-flex h-10 items-center rounded-full border border-border bg-bg"
+      data-mode={mode}
+      className="model-mode-toggle relative inline-flex h-10 w-full items-center rounded-full border border-border bg-bg"
     >
       <legend className="sr-only">{modelCopy.mode.label}</legend>
+      <span aria-hidden className="model-mode-indicator" />
       {MODES.map((option) => (
         <button
           type="button"
@@ -26,8 +28,8 @@ export function ModeToggle({ mode, onChange, describedBy }: ModeToggleProps) {
           aria-pressed={mode === option}
           onClick={() => onChange(option)}
           className={cn(
-            "h-full rounded-full px-4 text-small transition-colors duration-(--motion-quick)",
-            mode === option ? "bg-surface-raised text-text" : "text-text-muted hover:text-text",
+            "relative h-full flex-1 rounded-full px-4 text-small transition-colors duration-(--motion-quick) focus-visible:outline-1 focus-visible:outline-accent",
+            mode === option ? "text-text" : "text-text-muted hover:text-text",
           )}
         >
           {MODE_LABELS[option]}

@@ -1,6 +1,6 @@
 "use client";
 import { type Dispatch, type RefObject, type SetStateAction, useEffect, useRef } from "react";
-import { type Camera, zoomAt } from "../lib/canvas";
+import { type Camera, COMPACT_CANVAS_QUERY, zoomAt } from "../lib/canvas";
 
 export function useCanvasWheel(
   stage: RefObject<HTMLElement | null>,
@@ -10,6 +10,7 @@ export function useCanvasWheel(
     const element = stage.current;
     if (!element) return;
     const wheel = (event: WheelEvent) => {
+      if (window.matchMedia(COMPACT_CANVAS_QUERY).matches) return;
       const body = (event.target as HTMLElement).closest("[data-panel-body]");
       if (body && body.scrollHeight > body.clientHeight && !event.ctrlKey && !event.metaKey) return;
       event.preventDefault();

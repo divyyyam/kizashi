@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { PANEL_LAYOUT, type PanelId } from "../lib/canvas";
 import { CanvasPanel } from "./CanvasPanel";
 import { CanvasZoom } from "./CanvasZoom";
@@ -14,6 +14,7 @@ export function ModelCanvas({ panels, focused }: Props) {
     <section
       ref={canvas.stage}
       className="model-canvas"
+      data-active-panel={canvas.front}
       data-dragging={canvas.dragging}
       aria-label={canvasCopy.label}
       onPointerDown={(event) => canvas.start(event)}
@@ -42,12 +43,14 @@ export function ModelCanvas({ panels, focused }: Props) {
       </nav>
       <div
         className="model-canvas-world"
-        style={{
-          transform: `translate(${canvas.camera.x}px, ${canvas.camera.y}px) scale(${canvas.camera.zoom})`,
-        }}
+        style={
+          {
+            "--canvas-transform": `translate(${canvas.camera.x}px, ${canvas.camera.y}px) scale(${canvas.camera.zoom})`,
+          } as CSSProperties
+        }
       >
         {(Object.keys(PANEL_LAYOUT) as PanelId[]).map((id) => (
-          <div key={id} hidden={focused && id !== "analysis"}>
+          <div key={id} data-active={canvas.front === id} hidden={focused && id !== "analysis"}>
             <CanvasPanel id={id} canvas={canvas}>
               {panels[id]}
             </CanvasPanel>

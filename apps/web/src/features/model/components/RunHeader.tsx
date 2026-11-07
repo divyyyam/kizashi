@@ -19,12 +19,12 @@ export function RunHeader({ state, request, onNewRun, focused, onFocus }: RunHea
   const text = modelCopy.workspace;
   return (
     <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 pb-1">
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 flex-wrap items-center gap-3">
         <h1 className="font-display text-3xl leading-none text-text">{text.title}</h1>
         <RunStatus state={state} />
       </div>
-      <div className="flex items-center gap-4">
-        <p className="flex items-baseline gap-2 text-small">
+      <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:gap-4">
+        <p className="mr-auto flex items-baseline gap-2 text-small md:mr-0">
           <span className="text-text-muted">{modelCopy.budget.left}</span>
           <span className="tabular text-text">{formatUsdcAsUsd(budgetLeftUsdc(state))}</span>
           <span className="hidden tabular text-text-faint xl:inline">

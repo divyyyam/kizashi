@@ -63,11 +63,11 @@ export function PickPanels({ state, request, onSettle, context, focused }: PickP
           settlement={state.settlement}
           onSettle={onSettle}
         />
-      ) : (
+      ) : state.status === "running" ? (
         <p role="status" className="border-t border-border px-4 py-3 text-small text-text-muted">
           {modelCopy.workspace.waiting}
         </p>
-      )}
+      ) : null}
     </section>
   );
 }

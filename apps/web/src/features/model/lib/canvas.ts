@@ -1,5 +1,6 @@
 export type Point = { x: number; y: number };
 export type Camera = Point & { zoom: number };
+export const COMPACT_CANVAS_QUERY = "(width < 64rem)";
 
 export function zoomAt(camera: Camera, point: Point, zoom: number): Camera {
   const next = Math.min(1.6, Math.max(0.35, zoom));

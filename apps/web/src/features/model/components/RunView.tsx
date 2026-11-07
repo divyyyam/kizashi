@@ -33,25 +33,24 @@ export function RunView({ state, request, origin, onNewRun, onSettle }: RunViewP
         {state.status === "unavailable" ? (
           <section
             role="status"
-            className="flex min-w-0 flex-col justify-center gap-3 rounded-lg border border-dashed border-border-strong p-8"
+            className="flex min-w-0 shrink-0 flex-col gap-1 rounded-md border border-border p-3"
           >
-            <h2 className="text-h2 text-text">{modelCopy.unavailable.title}</h2>
+            <h2 className="text-small text-warning">{modelCopy.unavailable.title}</h2>
             <p className="max-w-lg text-small text-text-muted">{modelCopy.unavailable.body}</p>
           </section>
-        ) : (
-          <PickPanels
-            state={state}
-            request={request}
-            onSettle={onSettle}
-            focused={focused}
-            context={
-              <div className="flex flex-col gap-6">
-                <AskCard request={request} origin={origin} />
-                <ThinkingSteps steps={state.steps} />
-              </div>
-            }
-          />
-        )}
+        ) : null}
+        <PickPanels
+          state={state}
+          request={request}
+          onSettle={onSettle}
+          focused={focused}
+          context={
+            <div className="flex flex-col gap-6">
+              <AskCard request={request} origin={origin} />
+              <ThinkingSteps steps={state.steps} />
+            </div>
+          }
+        />
       </div>
     </div>
   );

@@ -5,8 +5,8 @@ import { PortfolioScreen } from "@/features/portfolio";
 
 export default function PortfolioPage() {
   return (
-    <Container className="flex flex-col gap-8 py-8 md:py-10">
-      <PageHeader title={copy.portfolio.title} />
+    <Container className="flex max-w-wide flex-col gap-6 py-6 md:py-8">
+      <PageHeader title={copy.portfolio.title} description={copy.feedback.portfolioHelp} />
       <PortfolioScreen />
     </Container>
   );

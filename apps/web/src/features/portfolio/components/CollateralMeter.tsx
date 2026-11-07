@@ -8,7 +8,7 @@ export function CollateralMeter({ positions }: { positions: readonly PortfolioPo
   const totals = portfolioCollateral(positions);
   return (
     <section
-      className="flex flex-col gap-6 rounded-md border bg-surface p-6"
+      className="flex flex-col gap-6 rounded-xl border border-border bg-surface p-6 md:p-8"
       aria-label={copy.portfolio.collateral}
     >
       <h2 className="text-h3 font-medium">{copy.portfolio.collateral}</h2>

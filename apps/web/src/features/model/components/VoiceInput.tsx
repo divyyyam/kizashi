@@ -1,10 +1,9 @@
-import { MAX_PROMPT_CHARACTERS } from "@kizashi/schemas/engine";
 import { LoaderCircle, Mic, Square, X } from "lucide-react";
 import { useEffect, useId } from "react";
 import { Button } from "@/components/ui/button";
 import { voiceCopy } from "@/content/model-voice-copy";
 import { useVoiceInput } from "../hooks/use-voice-input";
-import { appendTranscript } from "../lib/transcribe-voice";
+import { VoiceTranscript } from "./VoiceTranscript";
 
 type VoiceInputProps = {
   prompt: string;
@@ -16,78 +15,58 @@ export function VoiceInput({ prompt, onInsert, onBusy, disabled }: VoiceInputPro
   const voice = useVoiceInput();
   const id = useId();
   const active = ["requesting", "recording", "transcribing"].includes(voice.status);
+  const busy = active || voice.status === "review";
+  const unavailable = voice.status === "unavailable";
+  const label = unavailable ? voice.message : voiceCopy.start;
   useEffect(() => {
-    onBusy(active);
+    onBusy(busy);
     return () => onBusy(false);
-  }, [active, onBusy]);
-  const result = appendTranscript(prompt, voice.transcript);
-  const tooLong = result.length > MAX_PROMPT_CHARACTERS;
+  }, [busy, onBusy]);
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-3">
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={() => void voice.start()}
-          disabled={
-            disabled ||
-            active ||
-            voice.status === "checking" ||
-            voice.status === "unavailable" ||
-            voice.status === "review"
-          }
-        >
-          <Mic aria-hidden className="size-4" />
-          {voiceCopy.start}
-        </Button>
-        {active ? (
-          <VoiceRecording voice={voice} />
-        ) : (
-          <p className="text-small text-text-faint">{voiceCopy.limit}</p>
-        )}
-      </div>
-      {voice.status === "error" || voice.status === "unavailable" ? (
+    <div className="contents">
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        className="size-10 rounded-full p-0"
+        aria-label={label}
+        title={label}
+        aria-describedby={unavailable ? id : undefined}
+        onClick={() => void voice.start()}
+        disabled={disabled || busy || voice.status === "checking" || unavailable}
+      >
+        <Mic aria-hidden strokeWidth={1.5} className="size-4" />
+      </Button>
+      {unavailable ? (
+        <span id={id} className="sr-only">
+          {voice.message}
+        </span>
+      ) : null}
+      {busy || voice.status === "error" ? (
+        <VoiceFeedback voice={voice} prompt={prompt} onInsert={onInsert} disabled={disabled} />
+      ) : null}
+    </div>
+  );
+}
+
+function VoiceFeedback({
+  voice,
+  prompt,
+  onInsert,
+  disabled,
+}: Omit<VoiceInputProps, "onBusy"> & { voice: ReturnType<typeof useVoiceInput> }) {
+  return (
+    <div className="order-last flex w-full min-w-0 flex-col gap-3 border-t border-border pt-3">
+      {voice.status === "review" ? (
+        <VoiceTranscript voice={voice} prompt={prompt} onInsert={onInsert} disabled={disabled} />
+      ) : voice.status === "error" ? (
         <p role="status" className="text-small text-warning">
           {voice.message}
         </p>
-      ) : null}
-      {voice.status === "review" ? (
-        <div className="flex flex-col gap-3 rounded-lg border border-signal bg-bg p-4">
-          <label htmlFor={id} className="text-small text-text">
-            {voiceCopy.review}
-          </label>
-          <textarea
-            id={id}
-            rows={4}
-            aria-label={voiceCopy.edit}
-            value={voice.transcript}
-            onChange={(event) => voice.setTranscript(event.target.value)}
-            className="w-full resize-y bg-transparent text-small text-text outline-none focus-visible:ring-1 focus-visible:ring-signal"
-          />
-          {tooLong ? (
-            <p role="status" className="text-small text-warning">
-              {voiceCopy.tooLong}
-            </p>
-          ) : null}
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              size="sm"
-              disabled={disabled || tooLong || !voice.transcript.trim()}
-              onClick={() => {
-                onInsert(result);
-                voice.cancel();
-              }}
-            >
-              {voiceCopy.insert}
-            </Button>
-            <Button type="button" size="sm" variant="ghost" onClick={voice.cancel}>
-              {voiceCopy.discard}
-            </Button>
-          </div>
-        </div>
-      ) : null}
+      ) : (
+        <VoiceRecording voice={voice} />
+      )}
+      <p className="text-small text-text-faint">{voiceCopy.limit}</p>
       <p className="text-small text-text-faint">{voiceCopy.privacy}</p>
     </div>
   );

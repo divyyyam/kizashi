@@ -9,8 +9,8 @@ export type FlightOrigin = {
   readonly height: number;
 };
 
-const FLIGHT_MS = 900;
-const FLIGHT_EASING = "cubic-bezier(0.65, 0, 0.35, 1)";
+const FLIGHT_MS = 680;
+const FLIGHT_EASING = "cubic-bezier(0.16, 1, 0.3, 1)";
 // The card's content fades in over the last part of the flight, once its frame is nearly settled.
 const CONTENT_FADE_START = 0.55;
 

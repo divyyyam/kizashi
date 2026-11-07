@@ -1,34 +1,4 @@
 /* /model is a viewport, with independently movable content. */
-.model-studio {
-  overflow-y: auto;
-  scrollbar-width: thin;
-}
-.model-studio-grid {
-  grid-template-columns: minmax(0, 1fr);
-}
-.model-activity {
-  max-height: 30rem;
-}
-@media (width >= 80rem) {
-  .model-studio {
-    overflow: hidden;
-  }
-  .model-studio-grid {
-    grid-template-columns: minmax(22rem, 0.85fr) minmax(0, 1.65fr);
-  }
-  .model-strategy,
-  .model-console {
-    overflow-y: auto;
-    scrollbar-width: thin;
-  }
-  .model-strategy {
-    align-self: start;
-    max-height: 100%;
-  }
-  .model-studio > header {
-    flex-shrink: 0;
-  }
-}
 #app-main:has(.model-route) {
   height: calc(100dvh - var(--spacing-topbar));
   min-height: 0;
@@ -47,6 +17,11 @@
   max-width: none;
   overflow: hidden;
 }
+.model-route:has(.model-idle) {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
 .model-workspace {
   flex: 1;
   overflow: hidden;
@@ -58,9 +33,8 @@
   overflow: hidden;
 }
 .model-idle {
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-width: thin;
+  min-height: 100%;
+  flex-shrink: 0;
 }
 .model-canvas {
   position: relative;
@@ -70,6 +44,8 @@
   isolation: isolate;
   touch-action: none;
   cursor: grab;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
   background-image: radial-gradient(circle, var(--color-border-strong) 1px, transparent 1px);
 }
 .model-canvas[data-dragging="true"] {
@@ -80,11 +56,24 @@
   position: absolute;
   inset: 0;
   transform-origin: 0 0;
+  transform: var(--canvas-transform);
+}
+.model-canvas[data-dragging="true"] .model-canvas-world {
   will-change: transform;
 }
 .model-canvas-panel {
   position: absolute;
+  left: var(--panel-x);
+  top: var(--panel-y);
+  width: var(--panel-width);
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
   cursor: auto;
+}
+.model-panel-mobile-title {
+  display: none;
 }
 .model-panel-handle {
   display: flex;
@@ -101,6 +90,7 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
 }
 .model-panel-handle:hover,
 .model-panel-handle:focus-visible {
@@ -112,6 +102,7 @@
 }
 .model-panel-body {
   padding: 20px 16px;
+  max-height: var(--panel-body-height);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -130,9 +121,8 @@
   align-items: center;
   padding: 4px;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   background: var(--color-surface);
-  box-shadow: 0 4px 16px color-mix(in srgb, var(--color-bg) 65%, transparent);
   cursor: auto;
 }
 .model-canvas-nav {
@@ -140,8 +130,11 @@
   left: 50%;
   transform: translateX(-50%);
   max-width: calc(100% - 16px);
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 .model-canvas-nav button {
+  flex-shrink: 0;
   padding: 0 12px;
   white-space: nowrap;
   font-size: 12px;
@@ -154,11 +147,17 @@
 .model-canvas-nav button,
 .model-zoom-dock button {
   height: 40px;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
 }
 .model-canvas-nav button:hover,
 .model-zoom-dock button:hover {
   background: var(--color-surface-raised);
+}
+.model-canvas-nav button:focus-visible,
+.model-zoom-dock button:focus-visible,
+.model-panel-handle:focus-visible {
+  outline: 1px solid var(--color-signal);
+  outline-offset: -2px;
 }
 .model-zoom-dock {
   bottom: 14px;
@@ -199,15 +198,62 @@
 .model-chart .model-distribution {
   height: 200px;
 }
-@media (width < 48rem) {
-  .model-canvas-hint {
+@media (width < 64rem) {
+  .model-canvas {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    cursor: auto;
+    background-image: none;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-strong) transparent;
+  }
+  .model-canvas-world {
+    position: relative;
+    inset: auto;
+    padding: 0 12px 12px;
+    transform: none;
+  }
+  .model-canvas-world > [data-active="false"],
+  .model-panel-handle,
+  .model-canvas-hint,
+  .model-zoom-dock {
     display: none;
+  }
+  .model-canvas-panel {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    border-color: var(--color-border);
+  }
+  .model-panel-mobile-title {
+    display: block;
+    padding: 16px;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: var(--text-small);
+  }
+  .model-panel-body {
+    max-height: none;
+    overflow: visible;
+  }
+  .model-canvas-nav {
+    position: sticky;
+    top: 0;
+    left: auto;
+    width: fit-content;
+    margin: 12px auto;
+    transform: none;
   }
   .model-canvas-nav button {
     padding: 0 9px;
   }
 }
 @media (prefers-reduced-motion: no-preference) {
+  .model-workspace {
+    animation: model-workspace-in var(--motion-panel) ease-out both;
+  }
   .model-canvas-world {
     transition: transform 140ms var(--ease-out-soft);
   }
@@ -226,6 +272,11 @@
   }
   .model-grow {
     animation: model-grow var(--motion-brush) var(--ease-out-soft) both;
+  }
+}
+@keyframes model-workspace-in {
+  from {
+    opacity: 0;
   }
 }
 @keyframes model-rise {
