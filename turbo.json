@@ -8,6 +8,7 @@
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
       "env": [
         "NEXT_PUBLIC_*",
+        "NEXT_OUTPUT",
         "ARC_TESTNET_RPC_URL",
         "ARKIV_CHAIN_ID",
         "ARKIV_RPC_URL",

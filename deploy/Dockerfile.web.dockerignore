@@ -1,0 +1,25 @@
+.git
+**/node_modules
+**/.next
+**/.turbo
+**/dist
+**/*.tsbuildinfo
+**/coverage
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+contracts/*
+!contracts/deployments
+docs
+.claude
+.codex
+.agent
+.agents
+.keys
+**/.keys
+.worktrees
+.aws
+"Claude outputs"
+apps/indexer/.state

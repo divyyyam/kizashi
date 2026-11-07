@@ -1,11 +1,15 @@
 # Run from the repo root on the server:
 #   docker compose -f deploy/docker-compose.yml up -d --build
+# Both images are built from the same checkout; export GIT_SHA=$(git rev-parse --short HEAD) first so
+# the engine and the UI carry the same revision label (docker inspect -f '{{.Config.Labels}}').
 # Secrets live in /opt/kizashi/.env on the host (never in the repo); see deploy/.env.example.
 services:
   api:
     build:
       context: ..
       dockerfile: deploy/Dockerfile.api
+      args:
+        GIT_SHA: ${GIT_SHA:-dev}
     # Set KIZASHI_IMAGE to pull a prebuilt image instead of building on the host.
     image: ${KIZASHI_IMAGE:-kizashi-api:local}
     env_file: /opt/kizashi/.env
@@ -28,6 +32,38 @@ services:
       timeout: 5s
       retries: 3
       start_period: 40s
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+      args:
+        GIT_SHA: ${GIT_SHA:-dev}
+        # Inlined into the client bundle: these must point at the engine this compose file runs.
+        NEXT_PUBLIC_CHAIN_ID: ${NEXT_PUBLIC_CHAIN_ID:?set NEXT_PUBLIC_CHAIN_ID}
+        NEXT_PUBLIC_ARC_RPC_URL: ${NEXT_PUBLIC_ARC_RPC_URL:?set NEXT_PUBLIC_ARC_RPC_URL}
+        NEXT_PUBLIC_ENGINE_URL: ${NEXT_PUBLIC_ENGINE_URL:-https://api.kizashi.space}
+        NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID:-}
+        NEXT_PUBLIC_ARKIV_LISTING_WRITER: ${NEXT_PUBLIC_ARKIV_LISTING_WRITER:-}
+        NEXT_PUBLIC_ARKIV_INDEXER_WRITER: ${NEXT_PUBLIC_ARKIV_INDEXER_WRITER:-}
+        NEXT_PUBLIC_ARKIV_ENGINE_WRITER: ${NEXT_PUBLIC_ARKIV_ENGINE_WRITER:-}
+    image: ${KIZASHI_WEB_IMAGE:-kizashi-web:local}
+    env_file: /opt/kizashi/.env
+    environment:
+      PORT: "3000"
+      NODE_ENV: production
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks: [kizashi]
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
 
 networks:
   kizashi:

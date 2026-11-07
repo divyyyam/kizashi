@@ -1,10 +1,17 @@
+import { join } from "node:path";
 import type { NextConfig } from "next";
 // Import order matters: load the root .env, then validate the public environment so dev and
 // build fail loudly when it is invalid.
 import "./src/lib/load-root-env";
 import "./src/lib/env";
 
+// The Docker image (deploy/Dockerfile.web) sets NEXT_OUTPUT=standalone; Vercel builds without it.
+const standalone = process.env.NEXT_OUTPUT === "standalone";
+
 const nextConfig: NextConfig = {
+  ...(standalone
+    ? { output: "standalone" as const, outputFileTracingRoot: join(process.cwd(), "../..") }
+    : {}),
   reactStrictMode: true,
   poweredByHeader: false,
   transpilePackages: ["@kizashi/contracts"],

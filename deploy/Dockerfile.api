@@ -38,6 +38,8 @@ RUN cd packages/db && bunx prisma generate
 
 FROM oven/bun:1.4.2-slim AS runtime
 WORKDIR /app
+ARG GIT_SHA=dev
+LABEL org.opencontainers.image.revision=$GIT_SHA
 RUN apt-get update \
  && apt-get install -y --no-install-recommends openssl ca-certificates curl \
  && rm -rf /var/lib/apt/lists/*
