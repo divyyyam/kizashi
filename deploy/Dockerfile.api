@@ -28,6 +28,10 @@ COPY packages/config packages/config
 COPY packages/core packages/core
 COPY packages/db packages/db
 COPY packages/schemas packages/schemas
+# wire.ts reads <repo>/contracts/deployments/<chainId>.json at startup.
+COPY contracts/deployments contracts/deployments
+# Filtered install doesn't link @kizashi/config, but every tsconfig extends it (Prisma and Bun read them).
+RUN mkdir -p node_modules/@kizashi && ln -sfn ../../packages/config node_modules/@kizashi/config
 # Prisma 7 with the bun runtime and the pg adapter has no native query engine, so no
 # binaryTargets are needed; generation only needs the schema, not a database.
 RUN cd packages/db && bunx prisma generate
