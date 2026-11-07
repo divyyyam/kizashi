@@ -15,7 +15,7 @@ export default async function MarketPage({
   const chainId = chain === undefined ? undefined : Number(chain);
   if (chainId !== undefined && (!Number.isSafeInteger(chainId) || chainId <= 0)) notFound();
   return (
-    <Container className="flex flex-col gap-8 py-8 md:py-10">
+    <Container className="flex max-w-wide flex-col gap-6 py-6 md:py-8">
       <MarketScreen marketId={id} {...(chainId === undefined ? {} : { chainId })} />
     </Container>
   );

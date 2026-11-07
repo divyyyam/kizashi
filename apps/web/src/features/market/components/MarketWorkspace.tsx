@@ -1,12 +1,11 @@
 "use client";
-import { MarketTrace } from "@/components/market/MarketTrace";
-import { PositionPanel } from "@/components/market/PositionPanel";
 import { copy } from "@/content/copy";
 import { CurveEditor } from "@/features/curve";
 import type { DataState } from "@/lib/data-state";
 import { useBetWorkspace } from "../hooks/use-bet-workspace";
 import type { MarketDetail, OwnerPosition } from "../types";
 import { BetSlip } from "./BetSlip";
+import { MarketCrowd } from "./MarketCrowd";
 import { MarketDocuments } from "./MarketDocuments";
 import { MobileBetSheet } from "./MobileBetSheet";
 import { SettledMarketPanel } from "./SettledMarketPanel";
@@ -15,42 +14,26 @@ export function MarketWorkspace({
   position,
   connected,
   wrongNetwork,
+  readWarning,
 }: {
   market: MarketDetail;
   position: DataState<OwnerPosition>;
   connected: boolean;
   wrongNetwork: boolean;
+  readWarning?: string | undefined;
 }) {
-  const { grid, crowdPrices, value, onChange, highlight, slip, draft } = useBetWorkspace({
+  const workspace = useBetWorkspace({
     market,
     position,
     connected,
     wrongNetwork,
+    readWarning,
   });
+  const { slip } = workspace;
   return (
     <div className="flex flex-col gap-8 pb-24 lg:pb-0">
       <div className="grid-page items-start">
-        <section className="col-span-4 flex min-w-0 flex-col gap-6 md:col-span-8 lg:col-span-7">
-          <div className="flex items-center justify-between gap-4 border-b pb-4">
-            <h2 className="text-h3">{copy.market.crowd}</h2>
-            <span className="text-small text-text-muted">{copy.markets[market.kind]}</span>
-          </div>
-          <MarketTrace market={market}>
-            <CurveEditor
-              grid={grid}
-              crowdPrices={crowdPrices}
-              {...(market.status === "open" && draft.mode === "expressive"
-                ? { value, onChange }
-                : {})}
-              {...(highlight ? { highlight } : {})}
-              ariaLabel={copy.market.crowd}
-            />
-          </MarketTrace>
-          {market.status === "open" && draft.mode === "expressive" && (
-            <p className="text-small text-text-muted">{copy.motion.dragHelp}</p>
-          )}
-          <PositionPanel result={position} />
-        </section>
+        <MarketCrowd market={market} position={position} workspace={workspace} />
         <div className="hidden lg:col-span-5 lg:block">
           {market.status === "open" ? (
             <BetSlip {...slip} />
@@ -64,7 +47,7 @@ export function MarketWorkspace({
         </div>
       </div>
       {market.status === "open" ? (
-        <MobileBetSheet {...slip} />
+        <MobileWorkspace workspace={workspace} />
       ) : market.status === "resolved" ? (
         <div className="lg:hidden">
           <SettledMarketPanel market={market} />
@@ -76,5 +59,25 @@ export function MarketWorkspace({
       )}
       <MarketDocuments chainId={market.chainId} marketId={market.marketId} />
     </div>
+  );
+}
+
+const MOBILE_PREVIEW_HEIGHT = 180;
+
+function MobileWorkspace({ workspace }: { workspace: ReturnType<typeof useBetWorkspace> }) {
+  return (
+    <MobileBetSheet
+      {...workspace.slip}
+      preview={
+        <CurveEditor
+          grid={workspace.grid}
+          crowdPrices={workspace.crowdPrices}
+          {...(workspace.draft.mode === "expressive" ? { value: workspace.value } : {})}
+          {...(workspace.highlight ? { highlight: workspace.highlight } : {})}
+          height={MOBILE_PREVIEW_HEIGHT}
+          ariaLabel={copy.market.forecast}
+        />
+      }
+    />
   );
 }

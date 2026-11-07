@@ -14,7 +14,6 @@ export function SimpleInputs({
 }) {
   return (
     <>
-      {" "}
       {draft.mode === "simple" ? (
         <>
           <fieldset aria-label={copy.market.direction} className="grid grid-cols-2 gap-2">

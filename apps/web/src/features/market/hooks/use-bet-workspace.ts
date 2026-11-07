@@ -2,6 +2,7 @@
 import { sigmaBounds } from "@kizashi/core";
 import { useDeferredValue, useMemo, useState } from "react";
 import { useStore } from "zustand";
+import { copy } from "@/content/copy";
 import type { CurveParams } from "@/features/curve";
 import type { DataState } from "@/lib/data-state";
 import { createDraftStore } from "../lib/draft-store";
@@ -12,11 +13,13 @@ export function useBetWorkspace({
   position,
   connected,
   wrongNetwork,
+  readWarning,
 }: {
   market: MarketDetail;
   position: DataState<OwnerPosition>;
   connected: boolean;
   wrongNetwork: boolean;
+  readWarning?: string | undefined;
 }) {
   const [store] = useState(() => createDraftStore(market));
   const draft = useStore(store);
@@ -43,7 +46,12 @@ export function useBetWorkspace({
     });
   const deferredDraft = useDeferredValue(draft);
   const result = useQuote({ market, position, draft: deferredDraft });
-  const quote = deferredDraft === draft ? result : { status: "loading" as const };
+  const quote: DataState<import("../types").LocalQuote> =
+    readWarning || position.warning
+      ? { status: "error", message: copy.feedback.staleMarket }
+      : deferredDraft === draft
+        ? result
+        : { status: "loading" };
   const slip = { market, draft, store, quote, connected, wrongNetwork };
   const highlight =
     market.winningBucket !== undefined

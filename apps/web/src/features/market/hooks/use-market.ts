@@ -5,6 +5,8 @@ import { usePublicClient } from "wagmi";
 import { copy } from "@/content/copy";
 import type { DataState } from "@/lib/data-state";
 import { env } from "@/lib/env";
+import { queryResult } from "@/lib/query-result";
+import { boundedRead, isRateLimited } from "@/lib/request";
 import { fetchMarketDetail } from "../lib/fetch-market-detail";
 import type { MarketDetail } from "../types";
 
@@ -15,19 +17,24 @@ export function useMarket(identity: {
   const publicClient = usePublicClient({ chainId: identity.chainId });
   const arkivWriter = env.NEXT_PUBLIC_ARKIV_LISTING_WRITER;
 
-  const { data, isLoading, isError, error } = useQuery({
+  const query = useQuery({
     queryKey: ["market", identity.chainId, identity.marketId, arkivWriter],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!publicClient) throw new Error(copy.market.unavailable);
-      return fetchMarketDetail(publicClient, identity.marketId, identity.chainId, arkivWriter);
+      return boundedRead(
+        () => fetchMarketDetail(publicClient, identity.marketId, identity.chainId, arkivWriter),
+        { signal },
+      );
     },
     enabled: Boolean(publicClient && identity.marketId),
-    refetchInterval: 10_000,
+    refetchInterval: (query) => (isRateLimited(query.state.error) ? false : 10_000),
   });
 
-  if (!publicClient || isLoading) return { status: "loading" };
-  if (isError) return { status: "error", message: error?.message || copy.market.error };
-  if (data === "unsupported") return { status: "unavailable", reason: copy.market.unavailable };
-  if (data === "not_found" || !data) return { status: "empty" };
-  return { status: "ready", data };
+  if (!publicClient) return { status: "unavailable", reason: copy.feedback.dataUnavailable };
+  const result = queryResult(query, copy.market.error);
+  if (result.status !== "ready") return result;
+  if (result.data === "unsupported")
+    return { ...result, status: "unavailable", reason: copy.market.unavailable };
+  if (result.data === "not_found") return { ...result, status: "empty" };
+  return { ...result, data: result.data };
 }

@@ -17,18 +17,20 @@ export function BetInputs({
   return (
     <div className="flex flex-col gap-6">
       <ShapeInputs market={market} draft={draft} patch={patch} switchMode={switchMode} id={id} />
-      <label htmlFor={`${id}-spend`} className="flex flex-col gap-3 text-small text-text-muted">
+      <label htmlFor={`${id}-spend`} className="bet-spend">
         {copy.market.spend}
-        <input
-          id={`${id}-spend`}
-          aria-describedby={`${id}-spend-help`}
-          aria-label={copy.market.spend}
-          inputMode="decimal"
-          autoComplete="off"
-          value={draft.spend}
-          onChange={(event) => patch({ spend: event.target.value })}
-          className="h-12 w-full rounded-sm border bg-bg px-4 tabular text-h3 text-text"
-        />
+        <span className="spend-control">
+          <input
+            id={`${id}-spend`}
+            aria-describedby={`${id}-spend-help`}
+            aria-label={copy.market.spend}
+            inputMode="decimal"
+            autoComplete="off"
+            value={draft.spend}
+            onChange={(event) => patch({ spend: event.target.value })}
+          />
+          <span>{copy.market.unitUsdc}</span>
+        </span>
         <span id={`${id}-spend-help`}>{copy.market.spendHint}</span>
       </label>
     </div>

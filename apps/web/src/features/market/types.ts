@@ -1,5 +1,6 @@
 import type { TradeQuote } from "@kizashi/core";
 import type { MarketSummary } from "@/features/markets";
+import type { DataFeedback } from "@/lib/data-state";
 export type BlockIdentity = { blockNumber: bigint; blockHash: `0x${string}` };
 export type History =
   | { status: "complete"; originalTicketsWad: readonly (readonly bigint[])[] }
@@ -23,6 +24,7 @@ export type OwnerPosition = BlockIdentity & {
   owner: `0x${string}`;
   positionWad: readonly bigint[];
   history: History;
+  historyFeedback?: DataFeedback;
 };
 export type BetDraft = {
   mode: "simple" | "expressive";

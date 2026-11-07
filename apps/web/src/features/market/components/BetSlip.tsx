@@ -1,13 +1,11 @@
-import { Button } from "@/components/ui/button";
 import { copy } from "@/content/copy";
-import { ConnectButton } from "@/features/wallet";
 import type { DataState } from "@/lib/data-state";
-import { formatUsdc } from "@/lib/format";
-import { useTrade } from "../hooks/use-trade";
 import type { DraftStore } from "../lib/draft-store";
 import type { BetDraft, LocalQuote, MarketDetail } from "../types";
 import { BetInputs } from "./BetInputs";
 import { QuoteBreakdown } from "./QuoteBreakdown";
+import { TradeControls } from "./TradeControls";
+import "./bet-workspace.css";
 
 export type BetSlipProps = {
   market: MarketDetail;
@@ -18,78 +16,40 @@ export type BetSlipProps = {
   wrongNetwork: boolean;
 };
 
-export function BetSlip({ market, draft, store, quote, connected, wrongNetwork }: BetSlipProps) {
-  const trade = useTrade({
-    chainId: market.chainId,
-    poolAddress: market.poolAddress,
-    owner: quote.status === "ready" ? quote.data.owner : undefined,
-    chargeUsdc: quote.status === "ready" ? quote.data.chargeUsdc : undefined,
-  });
-
-  const renderActionButton = () => {
-    if (!connected) {
-      return <ConnectButton className="w-full" />;
-    }
-    if (wrongNetwork) {
-      return (
-        <Button className="w-full" disabled>
-          {copy.market.wrongNetwork}
-        </Button>
-      );
-    }
-    if (quote.status !== "ready" || trade.status !== "ready") {
-      return (
-        <Button className="w-full tabular" disabled>
-          {copy.market.bet}
-        </Button>
-      );
-    }
-    if (trade.needsApproval) {
-      return (
-        <Button
-          className="w-full"
-          onClick={() => void trade.approve()}
-          disabled={trade.isApproving}
-        >
-          {trade.isApproving ? copy.market.approvingUsdc : copy.market.approveUsdc}
-        </Button>
-      );
-    }
-    return (
-      <Button
-        className="w-full tabular"
-        onClick={() => void trade.trade(quote.data.deltaWad, quote.data.chargeUsdc)}
-        disabled={trade.isTrading}
-      >
-        {trade.isTrading
-          ? copy.market.placingBet
-          : copy.market.place(formatUsdc(quote.data.chargeUsdc))}
-      </Button>
-    );
-  };
-
-  const statusText = !connected
-    ? copy.market.connect
-    : wrongNetwork
-      ? copy.market.wrongNetwork
-      : trade.status === "not_ready"
-        ? trade.reason
-        : undefined;
-
+export function BetSlip({
+  market,
+  draft,
+  store,
+  quote,
+  connected,
+  wrongNetwork,
+  preview,
+  hideHeading = false,
+}: BetSlipProps & { preview?: ReactNode; hideHeading?: boolean }) {
   return (
-    <section className="flex flex-col gap-6 rounded-md border bg-surface p-6">
-      <h2 className="text-h3 font-medium">{copy.market.slip}</h2>
+    <section className="bet-slip" aria-label={copy.market.slip}>
+      {!hideHeading ? (
+        <header className="bet-slip-heading">
+          <h2>{copy.market.slip}</h2>
+          <span>{copy.market[draft.mode]}</span>
+        </header>
+      ) : null}
+      {preview}
       <BetInputs
         market={market}
         draft={draft}
         patch={store.getState().patch}
         switchMode={(mode) => store.getState().switchMode(mode, market)}
       />
-      <QuoteBreakdown result={quote} />
-      <div className="flex flex-col gap-3">
-        {renderActionButton()}
-        {statusText && <p className="text-small text-text-muted">{statusText}</p>}
-      </div>
+      {connected ? <QuoteBreakdown result={quote} /> : null}
+      <TradeControls
+        market={market}
+        quote={quote}
+        connected={connected}
+        wrongNetwork={wrongNetwork}
+      />
     </section>
   );
 }
+
+import type { ReactNode } from "react";
